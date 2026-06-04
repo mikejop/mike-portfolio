@@ -1,0 +1,107 @@
+@import "tailwindcss";
+
+:root {
+  --color-bg-primary: #ffffff;             /* Apple canvas */
+  --color-bg-secondary: #f5f5f7;           /* Apple canvas-parchment */
+  --color-bg-elevated: #fafafc;            /* Apple surface-pearl */
+  --color-bg-canvas: #ffffff;              /* Apple canvas */
+  --color-bg-canvas-dark: #272729;         /* Apple surface-tile-1 */
+  
+  --color-accent-primary: #0066cc;         /* Apple Action Blue */
+  --color-accent-secondary: #0071e3;       /* Apple Focus Blue */
+  --color-accent-orange: #0066cc;          /* Map all branding to Action Blue */
+  --color-accent-magenta: #2997ff;         /* Map secondary highlights to Sky Link Blue */
+  --color-accent-periwinkle: #2997ff;      /* Sky Link Blue */
+  --color-accent-mint: #2997ff;            /* Sky Link Blue */
+  
+  --color-text-primary: #1d1d1f;           /* Apple Ink / Body text */
+  --color-text-secondary: #7a7a7a;         /* Apple Ink Muted 48 */
+  --color-text-muted: #333333;             /* Apple Ink Muted 80 */
+  --color-border: #e0e0e0;                 /* Apple Hairline border */
+  --color-border-light: rgba(0, 0, 0, 0.08);
+  --color-border-accent: #0066cc;
+}
+
+@theme {
+  --color-bg-primary: var(--color-bg-primary);
+  --color-bg-secondary: var(--color-bg-secondary);
+  --color-bg-elevated: var(--color-bg-elevated);
+  --color-bg-canvas: var(--color-bg-canvas);
+  --color-bg-canvas-dark: var(--color-bg-canvas-dark);
+  
+  --color-accent-primary: var(--color-accent-primary);
+  --color-accent-secondary: var(--color-accent-secondary);
+  --color-accent-orange: var(--color-accent-orange);
+  --color-accent-magenta: var(--color-accent-magenta);
+  --color-accent-periwinkle: var(--color-accent-periwinkle);
+  --color-accent-mint: var(--color-accent-mint);
+  
+  --color-text-primary: var(--color-text-primary);
+  --color-text-secondary: var(--color-text-secondary);
+  --color-text-muted: var(--color-text-muted);
+  --color-border: var(--color-border);
+  --color-border-light: var(--color-border-light);
+  --color-border-accent: var(--color-border-accent);
+  
+  --font-sans: var(--font-sans), sans-serif;
+  --font-serif: var(--font-sans), sans-serif; /* Map serif to sans (Inter) for Apple clean display */
+  --font-mono: var(--font-mono), monospace;
+  
+  --rounded-none: 0px;
+  --rounded-xs: 8px;                       /* Apple rounded.sm (8px) for buttons */
+  --rounded-sm: 8px;                       /* Apple rounded.sm (8px) */
+  --rounded-md: 11px;                      /* Apple rounded.md (11px) */
+  --rounded-lg: 18px;                      /* Apple rounded.lg (18px) for cards */
+  --rounded-full: 9999px;                  /* Apple rounded.pill (9999px) */
+}
+
+.bg-together-gradient {
+  background: var(--color-accent-primary);
+}
+
+.text-together-gradient {
+  color: var(--color-accent-primary);
+  background: none;
+  -webkit-background-clip: initial;
+  -webkit-text-fill-color: initial;
+}
+
+body {
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border: 2px solid var(--color-bg-secondary);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-accent-primary);
+}
+
+/* Selection */
+::selection {
+  background-color: var(--color-accent-primary);
+  color: #ffffff;
+}
+
+/* Smooth Scroll Padding for Sticky Navbar */
+html {
+  scroll-padding-top: 80px;
+}
+

@@ -1,0 +1,17 @@
+{
+  "name": "michael-portfolio-site",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "cd b2b-mentoria-app && npm run build && cd .. && vite build && mkdir -p dist/src && cp -R src/assets dist/src/assets && rm -rf dist/b2btraining && cp -R b2b-mentoria-app/out dist/b2btraining",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^8.0.12"
+  },
+  "dependencies": {
+    "firebase": "^12.13.0"
+  }
+}
