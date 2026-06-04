@@ -60,9 +60,6 @@ export default function AboutMentor() {
           <span className="font-sans text-[10px] uppercase tracking-[0.15em] text-[#2997ff] font-semibold mb-2 block">
             Autoridade e Credibilidade
           </span>
-          <h2 className="font-sans text-3xl md:text-5xl font-bold -tracking-[0.02em] text-white">
-            Quem é o Mentor: Michael Oliveira, Diretor de Fotografia
-          </h2>
         </div>
 
         {/* Two-Column Grid */}

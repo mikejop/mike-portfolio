@@ -4,11 +4,13 @@ import { motion } from "framer-motion";
 
 export default function CredibilityBar() {
   const logos = [
-    "CINESTUDIO",
+    "GRUPO AMÉRICA",
     "GOODLOC",
-    "AICON",
+    "ASTRONAUTAS FILMES",
+    "NEXT VISION",
+    "LUMITAZ AUDIOVISUAL",
     "MALALA FILMES",
-    "WARNER MUSIC"
+    "FACULDADE FASTECH"
   ];
 
   return (
