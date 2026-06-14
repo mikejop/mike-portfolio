@@ -1,17 +1,58 @@
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
-    // Allow authenticated users to read/write their own roteiros folder
-    match /roteiros/{userId}/{allPaths=**} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+    
+    // Helper validation for images
+    function isValidImage() {
+      return request.resource.size <= 1 * 1024 * 1024
+        && request.resource.contentType in ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
     }
 
-    // Allow authenticated users to read/write their own projects folder
+    // Helper checking room membership in Firestore
+    function isRoomMember(roomId) {
+      return request.auth != null && 
+        firestore.get(/databases/(default)/documents/rooms/$(roomId)).data.memberIds.hasAny([request.auth.uid]);
+    }
+
+    // Helper checking personal script access in Firestore
+    function hasPersonalScriptAccess(userId, scriptId) {
+      return request.auth != null && (
+        request.auth.uid == userId ||
+        (firestore.exists(/databases/(default)/documents/users/$(userId)/roteiros/$(scriptId)) &&
+         request.auth.uid in firestore.get(/databases/(default)/documents/users/$(userId)/roteiros/$(scriptId)).data.sharedWith)
+      );
+    }
+
+    // Helper checking personal script write/editor access in Firestore
+    function hasPersonalScriptWriteAccess(userId, scriptId) {
+      return request.auth != null && (
+        request.auth.uid == userId ||
+        (firestore.exists(/databases/(default)/documents/users/$(userId)/roteiros/$(scriptId)) &&
+         firestore.get(/databases/(default)/documents/users/$(userId)/roteiros/$(scriptId)).data.sharedWith[request.auth.uid].permission == 'editor')
+      );
+    }
+
+    // Match rules for script takes images:
+    match /users/{userId}/roteiros/{scriptId}/takes/{fileName} {
+      allow read: if hasPersonalScriptAccess(userId, scriptId);
+      allow write: if hasPersonalScriptWriteAccess(userId, scriptId) && isValidImage();
+    }
+
+    match /rooms/{roomId}/roteiros/{scriptId}/takes/{fileName} {
+      allow read: if isRoomMember(roomId);
+      allow write: if isRoomMember(roomId) && isValidImage();
+    }
+
+    // Backwards compatibility and other user folders:
     match /users/{userId}/{allPaths=**} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
-    // Default: deny all other access
+    match /roteiros/{userId}/{allPaths=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Default deny
     match /{allPaths=**} {
       allow read, write: if false;
     }
