@@ -123,6 +123,16 @@ service cloud.firestore {
           );
           allow delete: if request.auth != null && request.auth.uid == userId;
         }
+
+        // Presença de usuários no roteiro pessoal/compartilhado
+        match /presence/{presUserId} {
+          allow read: if request.auth != null && (
+            request.auth.uid == userId || 
+            ('sharedWith' in get(/databases/$(database)/documents/users/$(userId)/roteiros/$(scriptId)).data && 
+             request.auth.uid in get(/databases/$(database)/documents/users/$(userId)/roteiros/$(scriptId)).data.sharedWith)
+          );
+          allow write: if request.auth != null && request.auth.uid == presUserId;
+        }
       }
 
       // Roteiros compartilhados com o usuário
@@ -141,7 +151,7 @@ service cloud.firestore {
 
     // 2. Coleção de salas colaborativas (rooms)
     match /rooms/{roomId} {
-      allow read: if request.auth != null && ('memberIds' in resource.data && resource.data.memberIds.hasAny([request.auth.uid]));
+      allow read: if request.auth != null && ('memberIds' in resource.data && request.auth.uid in resource.data.memberIds);
       allow create: if request.auth != null && request.resource.data.createdBy == request.auth.uid;
       allow update: if request.auth != null && (
         resource.data.createdBy == request.auth.uid || 
@@ -149,9 +159,15 @@ service cloud.firestore {
       );
       allow delete: if request.auth != null && resource.data.createdBy == request.auth.uid;
 
+      // Presença de usuários na sala
+      match /presence/{presUserId} {
+        allow read: if request.auth != null && request.auth.uid in get(/databases/$(database)/documents/rooms/$(roomId)).data.memberIds;
+        allow write: if request.auth != null && request.auth.uid == presUserId;
+      }
+
       // Roteiros criados dentro da sala
       match /roteiros/{scriptId} {
-        allow read: if request.auth != null && get(/databases/$(database)/documents/rooms/$(roomId)).data.memberIds.hasAny([request.auth.uid]);
+        allow read: if request.auth != null && request.auth.uid in get(/databases/$(database)/documents/rooms/$(roomId)).data.memberIds;
         allow create, update: if request.auth != null && (
           get(/databases/$(database)/documents/rooms/$(roomId)).data.createdBy == request.auth.uid ||
           ('members' in get(/databases/$(database)/documents/rooms/$(roomId)).data && 
@@ -167,7 +183,7 @@ service cloud.firestore {
 
         // Versões de conteúdo do roteiro da sala
         match /content/{versionId} {
-          allow read: if request.auth != null && get(/databases/$(database)/documents/rooms/$(roomId)).data.memberIds.hasAny([request.auth.uid]);
+          allow read: if request.auth != null && request.auth.uid in get(/databases/$(database)/documents/rooms/$(roomId)).data.memberIds;
           allow create, update: if request.auth != null && (
             get(/databases/$(database)/documents/rooms/$(roomId)).data.createdBy == request.auth.uid ||
             ('members' in get(/databases/$(database)/documents/rooms/$(roomId)).data && 
