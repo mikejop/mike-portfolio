@@ -1,0 +1,4 @@
+1:"$Sreact.fragment"
+2:I[239108,["/roteiroav/_next/static/chunks/e664242643e01224.js"],"default"]
+3:I[245061,["/roteiroav/_next/static/chunks/e664242643e01224.js"],"default"]
+0:{"buildId":"hkVB4akEmnDf4bsjm3q0I","rsc":["$","$1","c",{"children":[null,["$","$L2",null,{"parallelRouterKey":"children","template":["$","$L3",null,{}]}]]}],"loading":null,"isPartial":false}

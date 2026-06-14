@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+  <title>Dojo Utilities — Acesso Beta</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:#111113; --surface:#1a1a1c; --surface2:#222224;
+      --border:#2c2c2e; --border2:#383838;
+      --green:#00c896; --green-dim:rgba(0,200,150,0.12); --green-glow:rgba(0,200,150,0.22);
+      --text:#f0f0f0; --text2:#a0a0a8; --text3:#606068;
+      --danger:#ff5f5f; --r:10px; --r-sm:7px;
+    }
+    html { scroll-behavior:smooth; -webkit-text-size-adjust:100%; }
+    body {
+      background:var(--bg); color:var(--text); font-family:'Outfit',sans-serif;
+      min-height:100vh; display:flex; align-items:flex-start; justify-content:center;
+      padding:32px 12px 80px; -webkit-font-smoothing:antialiased;
+    }
+    .wrapper { width:100%; max-width:620px; display:flex; flex-direction:column; gap:8px; }
+
+    /* TOP BAR */
+    .topbar { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; padding:0 2px 22px; animation:fadeUp .5s ease both; }
+    .topbar-left { display:flex; flex-direction:column; gap:4px; min-width:0; }
+    .topbar-title { font-size:clamp(16px,4vw,20px); font-weight:600; color:var(--text); letter-spacing:-.3px; }
+    .topbar-title span { color:var(--text2); font-weight:400; }
+    .topbar-sub { font-size:clamp(11px,3vw,13px); color:var(--text3); line-height:1.4; }
+    .beta-pill { flex-shrink:0; background:var(--green-dim); border:1px solid rgba(0,200,150,.3); color:var(--green); font-size:10px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; padding:5px 10px; border-radius:999px; display:flex; align-items:center; gap:5px; }
+    .beta-pill::before { content:''; width:5px; height:5px; border-radius:50%; background:var(--green); animation:blink 2s ease infinite; flex-shrink:0; }
+
+    /* CARD */
+    .card { background:var(--surface); border:1px solid var(--border); border-radius:var(--r); padding:18px 16px; animation:fadeUp .5s ease both; }
+    .card:nth-child(2){animation-delay:.05s} .card:nth-child(3){animation-delay:.10s}
+    .card:nth-child(4){animation-delay:.15s} .card:nth-child(5){animation-delay:.20s}
+    .card:nth-child(6){animation-delay:.25s} .card:nth-child(7){animation-delay:.30s}
+    .card-header { font-size:10px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:var(--text3); margin-bottom:16px; display:flex; align-items:center; gap:8px; }
+    .card-header::after { content:''; flex:1; height:1px; background:var(--border); }
+
+    /* FIELD */
+    .field { margin-bottom:14px; }
+    .field:last-child { margin-bottom:0; }
+    .field-label { font-size:10px; font-weight:600; letter-spacing:1.8px; text-transform:uppercase; color:var(--text3); margin-bottom:8px; display:block; line-height:1.4; }
+    .req { color:var(--green); }
+    .opt { color:var(--text3); text-transform:none; letter-spacing:0; font-weight:400; font-size:10px; }
+    .sublabel { text-transform:none; letter-spacing:0; font-weight:400; font-size:10px; color:var(--text3); display:block; margin-top:2px; }
+
+    /* INPUTS & SELECTS */
+    input[type="text"], input[type="email"], input[type="tel"], input[type="password"], select {
+      width:100%; background:var(--surface2); border:1px solid var(--border2); border-radius:var(--r-sm);
+      color:var(--text); font-family:'Outfit',sans-serif; font-size:16px; font-weight:400;
+      padding:13px 14px; outline:none; transition:border-color .2s,box-shadow .2s;
+      -webkit-appearance:none; appearance:none;
+    }
+    select { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23606068' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 14px center; padding-right:38px; cursor:pointer; }
+    select option { background:#1a1a1c; color:var(--text); }
+    input::placeholder { color:var(--text3); }
+    input:focus, select:focus { border-color:var(--green); box-shadow:0 0 0 3px var(--green-dim); }
+
+    /* MULTI-CHECKBOX (tipo de conteúdo) */
+    .multi-check-group { display:flex; flex-direction:column; gap:7px; }
+    .mc-item {
+      display:flex; align-items:center; gap:12px;
+      background:var(--surface2); border:1px solid var(--border2);
+      border-radius:var(--r-sm); padding:12px 14px;
+      cursor:pointer; transition:border-color .2s, background .2s;
+      user-select:none; -webkit-tap-highlight-color:transparent;
+    }
+    .mc-item:hover { border-color:#4a4a4e; }
+    .mc-item.checked { background:var(--green-dim); border-color:rgba(0,200,150,.4); }
+    .mc-box {
+      width:18px; height:18px; border-radius:5px; flex-shrink:0;
+      border:1.5px solid var(--border2); background:var(--surface);
+      display:flex; align-items:center; justify-content:center; transition:all .18s;
+    }
+    .mc-item.checked .mc-box { background:var(--green); border-color:var(--green); }
+    .mc-box::after { content:''; display:none; width:6px; height:5px; border-left:2px solid #0a1a14; border-bottom:2px solid #0a1a14; transform:rotate(-45deg) translateY(-1px); }
+    .mc-item.checked .mc-box::after { display:block; }
+    .mc-label { font-size:14px; color:var(--text2); font-weight:400; }
+    .mc-item.checked .mc-label { color:var(--text); }
+    .field.has-err .multi-check-group { border:1px solid var(--danger); border-radius:var(--r-sm); padding:8px; }
+
+    /* PHONE */
+    .phone-wrap { position:relative; display:flex; }
+    .country-btn { flex-shrink:0; display:flex; align-items:center; gap:6px; background:var(--surface2); border:1px solid var(--border2); border-right:none; border-radius:var(--r-sm) 0 0 var(--r-sm); padding:0 12px; height:50px; cursor:pointer; color:var(--text2); font-family:'Outfit',sans-serif; font-size:14px; transition:border-color .2s; white-space:nowrap; -webkit-tap-highlight-color:transparent; }
+    .country-btn:focus { outline:none; border-color:var(--green); box-shadow:0 0 0 3px var(--green-dim); z-index:1; }
+    .country-btn .flag { font-size:18px; line-height:1; }
+    .country-btn .ddi { font-size:14px; font-weight:500; color:var(--text); }
+    .country-btn svg { color:var(--text3); transition:transform .2s; flex-shrink:0; }
+    .country-btn.open svg { transform:rotate(180deg); }
+    .phone-wrap input[type="tel"] { border-radius:0 var(--r-sm) var(--r-sm) 0; flex:1; min-width:0; }
+    .phone-wrap.focused .country-btn { border-color:var(--green); }
+    .phone-wrap.focused input[type="tel"] { border-color:var(--green); box-shadow:0 0 0 3px var(--green-dim); }
+
+    .country-dropdown { position:absolute; top:calc(100% + 6px); left:0; width:300px; max-width:90vw; background:var(--surface); border:1px solid var(--border2); border-radius:var(--r-sm); z-index:200; box-shadow:0 12px 40px rgba(0,0,0,.5); display:none; flex-direction:column; overflow:hidden; animation:fadeUp .2s ease both; }
+    .country-dropdown.open { display:flex; }
+    .country-search-wrap { padding:10px 10px 8px; border-bottom:1px solid var(--border); }
+    .country-search-wrap input { width:100%; background:var(--surface2); border:1px solid var(--border2); border-radius:6px; color:var(--text); font-family:'Outfit',sans-serif; font-size:13px; padding:8px 10px; outline:none; }
+    .country-search-wrap input:focus { border-color:var(--green); box-shadow:none; }
+    .country-list { overflow-y:auto; max-height:220px; -webkit-overflow-scrolling:touch; }
+    .country-list::-webkit-scrollbar { width:4px; }
+    .country-list::-webkit-scrollbar-thumb { background:var(--border2); border-radius:2px; }
+    .country-item { display:flex; align-items:center; gap:10px; padding:10px 14px; cursor:pointer; font-size:14px; color:var(--text2); transition:background .15s; -webkit-tap-highlight-color:transparent; }
+    .country-item:hover, .country-item.selected { background:var(--surface2); color:var(--text); }
+    .country-item.selected { color:var(--green); }
+    .country-item .ci-flag { font-size:18px; flex-shrink:0; }
+    .country-item .ci-name { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .country-item .ci-ddi { font-size:12px; color:var(--text3); flex-shrink:0; }
+    .no-results { padding:16px; font-size:13px; color:var(--text3); text-align:center; }
+
+    /* GRID */
+    .row-2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    @media(max-width:420px){ .row-2 { grid-template-columns:1fr; } }
+
+    /* STUDENT */
+    #student-block { display:none; flex-direction:column; gap:14px; margin-top:14px; padding:14px; background:rgba(0,200,150,.04); border:1px solid rgba(0,200,150,.18); border-radius:var(--r-sm); }
+    #student-block.show { display:flex; animation:fadeUp .3s ease both; }
+    .student-tag { font-size:10px; font-weight:600; letter-spacing:1.8px; text-transform:uppercase; color:var(--green); margin-bottom:-4px; }
+    .conditional { display:none; }
+    .conditional.show { display:block; animation:fadeUp .25s ease both; }
+
+    /* PW */
+    .pw-bars { display:flex; gap:4px; height:3px; margin-top:8px; }
+    .pw-bar { flex:1; border-radius:2px; background:var(--border2); transition:background .25s; }
+
+    /* ERRORS */
+    .err { font-size:12px; color:var(--danger); margin-top:6px; display:none; }
+    .field.has-err input, .field.has-err select { border-color:var(--danger) !important; box-shadow:none !important; }
+    .field.has-err .err { display:block; }
+    .field.has-err .country-btn { border-color:var(--danger) !important; }
+
+    /* CHECKBOXES (termos) */
+    .check-row { display:flex; align-items:flex-start; gap:12px; padding:14px; border-radius:var(--r-sm); border:1px solid var(--border2); background:var(--surface2); cursor:pointer; transition:border-color .2s; -webkit-tap-highlight-color:transparent; user-select:none; }
+    .check-row:hover { border-color:#4a4a4e; }
+    .check-row.required-check.active { border-color:rgba(0,200,150,.35); background:var(--green-dim); }
+    .check-box { flex-shrink:0; width:18px; height:18px; border-radius:5px; border:1.5px solid var(--border2); background:var(--surface); margin-top:1px; display:flex; align-items:center; justify-content:center; transition:all .18s; }
+    .check-row.active .check-box { background:var(--green); border-color:var(--green); }
+    .check-box::after { content:''; display:none; width:6px; height:5px; border-left:2px solid #0a1a14; border-bottom:2px solid #0a1a14; transform:rotate(-45deg) translateY(-1px); }
+    .check-row.active .check-box::after { display:block; }
+    .check-text { font-size:13px; color:var(--text2); line-height:1.55; font-weight:400; }
+    .check-text .terms-link { color:var(--green); text-decoration:underline; cursor:pointer; font-weight:500; }
+    .check-field { margin-bottom:10px; }
+    .check-field:last-child { margin-bottom:0; }
+    .check-field.has-err .check-row { border-color:var(--danger); }
+    .check-field.has-err .err { display:block; }
+
+    /* MODAL */
+    .modal-overlay { position:fixed; inset:0; z-index:300; background:rgba(0,0,0,.75); backdrop-filter:blur(4px); display:flex; align-items:flex-end; justify-content:center; opacity:0; pointer-events:none; transition:opacity .25s; }
+    .modal-overlay.open { opacity:1; pointer-events:all; }
+    .modal { background:var(--surface); border:1px solid var(--border); border-radius:var(--r) var(--r) 0 0; width:100%; max-width:640px; max-height:85vh; display:flex; flex-direction:column; transform:translateY(40px); transition:transform .3s ease; }
+    .modal-overlay.open .modal { transform:translateY(0); }
+    .modal-handle { flex-shrink:0; display:flex; justify-content:center; padding:12px 0 8px; }
+    .modal-handle::after { content:''; width:36px; height:4px; border-radius:2px; background:var(--border2); }
+    .modal-header { flex-shrink:0; padding:0 20px 14px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+    .modal-title { font-size:15px; font-weight:600; color:var(--text); }
+    .modal-subtitle { font-size:12px; color:var(--text3); margin-top:2px; }
+    .modal-close { width:30px; height:30px; border-radius:50%; background:var(--surface2); border:1px solid var(--border2); color:var(--text2); font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background .15s; }
+    .modal-close:hover { background:var(--border); }
+    .modal-body { flex:1; overflow-y:auto; padding:20px; -webkit-overflow-scrolling:touch; }
+    .modal-body::-webkit-scrollbar { width:4px; }
+    .modal-body::-webkit-scrollbar-thumb { background:var(--border2); border-radius:2px; }
+    .terms-content h2 { font-size:12px; font-weight:700; color:var(--text); margin:18px 0 7px; text-transform:uppercase; letter-spacing:1px; }
+    .terms-content h2:first-child { margin-top:0; }
+    .terms-content p { font-size:13px; color:var(--text2); line-height:1.65; margin-bottom:8px; }
+    .terms-content ul { padding-left:18px; margin-bottom:8px; }
+    .terms-content li { font-size:13px; color:var(--text2); line-height:1.65; margin-bottom:4px; }
+    .terms-email { color:var(--green); font-size:13px; }
+    .modal-footer { flex-shrink:0; padding:14px 20px; border-top:1px solid var(--border); }
+    .modal-btn { width:100%; background:var(--green); color:#0a1a14; font-family:'Outfit',sans-serif; font-size:14px; font-weight:700; border:none; border-radius:var(--r-sm); padding:14px; cursor:pointer; }
+
+    /* SUBMIT */
+    .btn-submit { width:100%; background:var(--green); color:#0a1a14; font-family:'Outfit',sans-serif; font-size:15px; font-weight:700; border:none; border-radius:var(--r-sm); padding:17px; cursor:pointer; position:relative; overflow:hidden; transition:opacity .2s,transform .15s,box-shadow .2s; -webkit-tap-highlight-color:transparent; }
+    .btn-submit:active { transform:scale(.99); }
+    .btn-submit:disabled { opacity:.4; cursor:not-allowed; transform:none; }
+    .spin { display:none; width:16px; height:16px; border:2px solid rgba(0,0,0,.2); border-top-color:#0a1a14; border-radius:50%; animation:spin .6s linear infinite; position:absolute; right:18px; top:50%; transform:translateY(-50%); }
+    .btn-submit.loading .spin { display:block; }
+    .submit-note { font-size:12px; color:var(--text3); text-align:center; line-height:1.7; margin-top:10px; }
+    #global-err { display:none; background:rgba(255,95,95,.1); border:1px solid rgba(255,95,95,.25); color:var(--danger); font-size:13px; padding:11px 14px; border-radius:var(--r-sm); margin-top:10px; }
+
+    /* SUCCESS */
+    #success { display:none; flex-direction:column; align-items:center; justify-content:center; text-align:center; min-height:65vh; padding:24px; }
+    #success.show { display:flex; animation:fadeUp .6s ease both; }
+    .s-ring { width:64px; height:64px; border-radius:50%; border:1.5px solid rgba(0,200,150,.35); background:var(--green-dim); display:flex; align-items:center; justify-content:center; font-size:26px; margin-bottom:24px; }
+    .s-title { font-size:clamp(22px,6vw,28px); font-weight:700; letter-spacing:-.5px; margin-bottom:10px; }
+    .s-title span { color:var(--green); }
+    .s-desc { font-size:14px; color:var(--text2); line-height:1.7; max-width:380px; }
+    .s-count { margin-top:28px; background:var(--surface); border:1px solid var(--border); border-radius:999px; padding:8px 20px; font-size:13px; color:var(--text3); }
+    .s-count strong { color:var(--green); }
+
+    /* DATE PICKER */
+    .date-picker-row { display: grid; grid-template-columns: 1fr 1.4fr 1.1fr; gap: 8px; }
+    .date-picker-row select {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      border-radius: var(--r-sm);
+      color: var(--text);
+      font-family: 'Outfit', sans-serif;
+      font-size: 15px; font-weight: 400;
+      padding: 13px 30px 13px 14px;
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+      -webkit-appearance: none; appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23606068' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      cursor: pointer;
+    }
+    .date-picker-row select option { background: #1a1a1c; color: var(--text); }
+    .date-picker-row select:focus {
+      border-color: var(--green);
+      box-shadow: 0 0 0 3px var(--green-dim);
+    }
+    .date-picker-label {
+      font-size: 9px; font-weight: 600; letter-spacing: 1.5px;
+      text-transform: uppercase; color: var(--text3);
+      margin-bottom: 5px; display: block;
+    }
+    .field.has-err .date-picker-row select { border-color: var(--danger) !important; box-shadow: none !important; }
+
+    @keyframes fadeUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes blink  { 0%,100%{opacity:1} 50%{opacity:.3} }
+    @keyframes spin   { to{transform:translateY(-50%) rotate(360deg)} }
+    @media(max-width:480px){ body{padding:20px 10px 80px} .card{padding:16px 14px} }
+  </style>
+</head>
+<body>
+
+<!-- TERMS MODAL -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">Termos de Uso e Acesso Beta</div>
+        <div class="modal-subtitle">dojo.hirocontents.com.br</div>
+      </div>
+      <button class="modal-close" id="modal-close">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="terms-content">
+        <p>Ao acessar ou utilizar a plataforma dojo.hirocontents.com.br, o usuário declara que leu, compreendeu e concorda integralmente com os presentes Termos de Uso, em conformidade com a LGPD (Lei nº 13.709/2018).</p>
+        <h2>1. Identificação do serviço</h2>
+        <p>A plataforma Dojo é operada pela Hīrō Contents, destinada a ferramentas digitais para projetos audiovisuais. Contato: <span class="terms-email">contato@hirocontents.com.br</span></p>
+        <h2>2. Descrição da plataforma</h2>
+        <p>A plataforma disponibiliza ferramentas criativas (Roteiro AV, Mapa de Luz, Storyboard, Moodboard, Copy Writing), financeiras (Precificação, Editor de Orçamento), de planejamento (Planejador de Conteúdo) e utilitárias (Extrator e Criador de Paleta de Cor). Novas ferramentas poderão ser adicionadas ou removidas a qualquer momento.</p>
+        <h2>3. Natureza experimental (Versão Beta)</h2>
+        <ul>
+          <li>O sistema pode conter erros, bugs ou comportamentos inesperados;</li>
+          <li>Funcionalidades podem ser alteradas ou removidas sem aviso prévio;</li>
+          <li>Pode ocorrer instabilidade ou indisponibilidade temporária;</li>
+          <li>Pode ocorrer reset do sistema, com perda parcial ou total de dados;</li>
+          <li>Recursos podem estar incompletos ou em fase de implementação.</li>
+        </ul>
+        <h2>4. Cadastro e acesso</h2>
+        <p>O usuário é responsável pela confidencialidade de sua senha e por todas as atividades em sua conta. Uso indevido: <span class="terms-email">contato@hirocontents.com.br</span></p>
+        <h2>5. Uso permitido</h2>
+        <p>É proibido acessar áreas restritas, realizar engenharia reversa, explorar falhas de segurança, usar para fins ilegais ou redistribuir o software sem autorização.</p>
+        <h2>6. Propriedade intelectual</h2>
+        <p>Todo o conteúdo, código, design e funcionalidades da plataforma Dojo são protegidos por direitos de propriedade intelectual da Hīrō Contents.</p>
+        <h2>7. Conteúdo dos usuários</h2>
+        <p>Os conteúdos criados na plataforma pertencem ao usuário. O usuário concede à Hīrō Contents autorização para armazenamento, processamento e uso anonimizado para melhoria da plataforma.</p>
+        <h2>8. Limitação de responsabilidade</h2>
+        <p>A Hīrō Contents não se responsabiliza por perda de dados, indisponibilidade ou danos indiretos. O uso ocorre por conta e risco do usuário.</p>
+        <h2>9. Tratamento de dados (LGPD)</h2>
+        <p>Dados são tratados para autenticação, funcionamento da plataforma e melhoria das ferramentas, em conformidade com a Lei nº 13.709/2018.</p>
+        <h2>10. Direitos do titular</h2>
+        <p>O usuário tem direito a acesso, correção, anonimização, portabilidade e revogação de consentimento. Solicitações: <span class="terms-email">contato@hirocontents.com.br</span></p>
+        <h2>11 a 14. Segurança, modificações e legislação</h2>
+        <p>A Hīrō Contents adota medidas razoáveis de segurança. Pode modificar a plataforma e estes termos a qualquer momento. O uso contínuo implica aceitação. Legislação aplicável: leis da República Federativa do Brasil.</p>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-btn" id="modal-accept">Li e entendi os Termos de Uso</button>
+    </div>
+  </div>
+</div>
+
+<div class="wrapper" id="main">
+  <div class="topbar" id="topbar">
+    <div class="topbar-left">
+      <div class="topbar-title">Cadastro <span>Dojo Utilities</span></div>
+      <div class="topbar-sub">Preencha para liberar seu acesso gratuito de 3 semanas</div>
+    </div>
+    <div class="beta-pill">Beta</div>
+  </div>
+
+  <form id="form" novalidate>
+
+    <!-- 1. IDENTIFICAÇÃO -->
+    <div class="card">
+      <div class="card-header">Identificação</div>
+      <div class="field" id="f-name">
+        <label class="field-label" for="name">Nome completo <span class="req">*</span></label>
+        <input type="text" id="name" placeholder="Seu nome completo" autocomplete="name"/>
+        <div class="err">Informe seu nome completo.</div>
+      </div>
+      <div class="row-2">
+        <div class="field" id="f-email">
+          <label class="field-label" for="email">E-mail <span class="req">*</span></label>
+          <input type="email" id="email" placeholder="seu@email.com" autocomplete="email"/>
+          <div class="err">Insira um e-mail válido.</div>
+        </div>
+        <div class="field" id="f-phone">
+          <label class="field-label" for="phone">WhatsApp <span class="opt">(opcional)</span></label>
+          <div class="phone-wrap" id="phone-wrap">
+            <button type="button" class="country-btn" id="country-btn" aria-label="Selecionar país">
+              <span class="flag" id="selected-flag">🇧🇷</span>
+              <span class="ddi" id="selected-ddi">(+55)</span>
+              <svg width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <input type="tel" id="phone" placeholder="00 00000-0000" inputmode="numeric" autocomplete="tel"/>
+            <div class="country-dropdown" id="country-dropdown">
+              <div class="country-search-wrap">
+                <input type="text" id="country-search" placeholder="Buscar país..." autocomplete="off"/>
+              </div>
+              <div class="country-list" id="country-list"></div>
+            </div>
+          </div>
+          <div class="err" id="phone-err">Informe um número válido.</div>
+        </div>
+      </div>
+      <div class="row-2">
+        <div class="field" id="f-birthdate">
+          <label class="field-label">Data de nascimento <span class="req">*</span></label>
+          <div class="date-picker-row">
+            <div>
+              <span class="date-picker-label">Dia</span>
+              <select id="birth-day"><option value="">--</option></select>
+            </div>
+            <div>
+              <span class="date-picker-label">Mês</span>
+              <select id="birth-month"><option value="">--</option></select>
+            </div>
+            <div>
+              <span class="date-picker-label">Ano</span>
+              <select id="birth-year"><option value="">--</option></select>
+            </div>
+          </div>
+          <input type="hidden" id="birthdate"/>
+          <div class="err">Informe sua data de nascimento.</div>
+        </div>
+        <div class="field" id="f-gender">
+          <label class="field-label" for="gender">Gênero <span class="req">*</span></label>
+          <span class="date-picker-label">&nbsp;</span>
+          <select id="gender">
+            <option value="">Selecione...</option>
+            <option>Masculino</option>
+            <option>Feminino</option>
+            <option>Não-binário</option>
+            <option>Prefiro não dizer</option>
+            <option>Outro</option>
+          </select>
+          <div class="err">Selecione uma opção.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. PERFIL -->
+    <div class="card">
+      <div class="card-header">Perfil profissional</div>
+
+      <div class="field" id="f-role">
+        <label class="field-label" for="role">Como você se define? <span class="req">*</span></label>
+        <select id="role">
+          <option value="">Selecione...</option>
+          <option>Videomaker freelancer</option><option>Produtora</option>
+          <option>Diretor / Roteirista</option><option>Editor</option>
+          <option>Motion Designer</option><option>Colorista</option>
+          <option>Fotógrafo</option><option>Social Media</option>
+          <option>Estudante</option><option>Outro</option>
+        </select>
+        <div class="err">Selecione como você se define.</div>
+      </div>
+
+      <!-- STUDENT BLOCK -->
+      <div id="student-block">
+        <div class="student-tag">Dados do curso</div>
+        <div class="field" id="f-course" style="margin-bottom:0">
+          <label class="field-label" for="course">Qual curso você faz? <span class="req">*</span></label>
+          <input type="text" id="course" placeholder="Ex: Rádio, TV e Internet"/>
+          <div class="err">Informe seu curso.</div>
+        </div>
+        <div class="field" id="f-semester" style="margin-bottom:0">
+          <label class="field-label" for="semester">Semestre atual <span class="req">*</span></label>
+          <select id="semester">
+            <option value="">Selecione...</option>
+            <option>1º semestre</option><option>2º semestre</option><option>3º semestre</option>
+            <option>4º semestre</option><option>5º semestre</option><option>6º semestre</option>
+            <option>7º semestre</option><option>8º semestre ou mais</option>
+          </select>
+          <div class="err">Selecione seu semestre.</div>
+        </div>
+      </div>
+
+      <!-- TEMPO (não estudante) -->
+      <div class="field conditional" id="f-time">
+        <label class="field-label" for="time-in-field">Há quanto tempo atua no audiovisual? <span class="req">*</span></label>
+        <select id="time-in-field">
+          <option value="">Selecione...</option>
+          <option>Estou começando agora</option><option>Menos de 1 ano</option>
+          <option>1–3 anos</option><option>3–7 anos</option><option>Mais de 7 anos</option>
+        </select>
+        <div class="err">Selecione uma opção.</div>
+      </div>
+
+      <!-- TIPO DE CONTEÚDO — multi-checkbox (não estudante) -->
+      <div class="field conditional" id="f-content-type" style="margin-bottom:0">
+        <label class="field-label">
+          Qual tipo de conteúdo você produz? <span class="req">*</span>
+          <span class="sublabel">Pode marcar mais de um</span>
+        </label>
+        <div class="multi-check-group" id="ctype-group">
+          <div class="mc-item" data-val="Publicidade / Comerciais">
+            <div class="mc-box"></div><span class="mc-label">Publicidade / Comerciais</span>
+          </div>
+          <div class="mc-item" data-val="Conteúdo para redes sociais">
+            <div class="mc-box"></div><span class="mc-label">Conteúdo para redes sociais</span>
+          </div>
+          <div class="mc-item" data-val="Documentários / Filmes">
+            <div class="mc-box"></div><span class="mc-label">Documentários / Filmes</span>
+          </div>
+          <div class="mc-item" data-val="Eventos">
+            <div class="mc-box"></div><span class="mc-label">Eventos</span>
+          </div>
+          <div class="mc-item" data-val="Institucional">
+            <div class="mc-box"></div><span class="mc-label">Institucional</span>
+          </div>
+          <div class="mc-item" data-val="Outro">
+            <div class="mc-box"></div><span class="mc-label">Outro</span>
+          </div>
+        </div>
+        <div class="err">Selecione ao menos um tipo de conteúdo.</div>
+      </div>
+    </div>
+
+    <!-- 3. QUALIFICAÇÃO -->
+    <div class="card" id="card-qualificacao">
+      <div class="card-header">Qualificação</div>
+      <div class="field" id="f-projects">
+        <label class="field-label" for="projects">Projetos por mês <span class="req">*</span></label>
+        <select id="projects">
+          <option value="">Selecione...</option>
+          <option value="1–2">1–2 projetos</option><option value="3–5">3–5 projetos</option>
+          <option value="6–10">6–10 projetos</option><option value="Mais de 10">Mais de 10 projetos</option>
+        </select>
+        <div class="err">Selecione uma opção.</div>
+      </div>
+      <div class="field" id="f-team">
+        <label class="field-label" for="team">Você trabalha sozinho ou em equipe? <span class="req">*</span></label>
+        <select id="team">
+          <option value="">Selecione...</option>
+          <option>Trabalho solo</option><option>Tenho 1–3 colaboradores</option>
+          <option>Equipe de 4+ pessoas</option>
+        </select>
+        <div class="err">Selecione uma opção.</div>
+      </div>
+      <div class="field" id="f-regime" style="margin-bottom:0">
+        <label class="field-label" for="regime">Qual seu regime de trabalho? <span class="req">*</span></label>
+        <select id="regime">
+          <option value="">Selecione...</option>
+          <option>CLT</option>
+          <option>PJ (Pessoa Jurídica)</option>
+          <option>Autônomo / Informal</option>
+          <option>MEI</option>
+        </select>
+        <div class="err">Selecione uma opção.</div>
+      </div>
+    </div>
+
+    <!-- 4. DESCOBERTA -->
+    <div class="card">
+      <div class="card-header">Como você chegou até aqui</div>
+      <div class="field" id="f-knew">
+        <label class="field-label" for="knew">Você já me conhecia antes? <span class="req">*</span></label>
+        <select id="knew">
+          <option value="">Selecione...</option>
+          <option>Sim, acompanho você há um tempo</option>
+          <option>Já ouvi falar, mas não acompanho</option>
+          <option>Não, acabei de te descobrir</option>
+        </select>
+        <div class="err">Selecione uma opção.</div>
+      </div>
+      <div class="field" id="f-channels">
+        <label class="field-label" for="channels">Como chegou até mim? <span class="req">*</span></label>
+        <select id="channels">
+          <option value="">Selecione...</option>
+          <option>Instagram</option><option>YouTube</option><option>TikTok</option>
+          <option>Indicação de alguém</option><option>LinkedIn</option>
+          <option>Pesquisa no Google</option><option>Outro</option>
+        </select>
+        <div class="err">Selecione uma opção.</div>
+      </div>
+      <div class="field" id="f-content-consumed">
+        <label class="field-label" for="content-consumed">O que consome do meu conteúdo? <span class="req">*</span></label>
+        <select id="content-consumed">
+          <option value="">Selecione...</option>
+          <option>Dicas e tutoriais</option><option>Bastidores de projetos</option>
+          <option>Conteúdo sobre mercado / carreira</option><option>Reels / Shorts</option>
+          <option>Não consumo conteúdo, só soube da ferramenta</option>
+        </select>
+        <div class="err">Selecione uma opção.</div>
+      </div>
+      <div class="field" id="f-motivation" style="margin-bottom:0">
+        <label class="field-label" for="motivation">O que te motivou a testar? <span class="req">*</span></label>
+        <select id="motivation">
+          <option value="">Selecione...</option>
+          <option>Indicação de alguém</option><option>Vi um conteúdo seu sobre ela</option>
+          <option>Curiosidade</option><option>Resolvia um problema que eu tinha</option><option>Outro</option>
+        </select>
+        <div class="err">Selecione uma opção.</div>
+      </div>
+    </div>
+
+    <!-- 5. ACESSO -->
+    <div class="card">
+      <div class="card-header">Criar seu acesso</div>
+      <div class="row-2">
+        <div class="field" id="f-password">
+          <label class="field-label" for="password">Senha <span class="req">*</span></label>
+          <input type="password" id="password" placeholder="Mínimo 6 caracteres" autocomplete="new-password"/>
+          <div class="pw-bars">
+            <div class="pw-bar" id="pb1"></div><div class="pw-bar" id="pb2"></div>
+            <div class="pw-bar" id="pb3"></div><div class="pw-bar" id="pb4"></div>
+          </div>
+          <div class="err">Senha precisa ter pelo menos 6 caracteres.</div>
+        </div>
+        <div class="field" id="f-pw-confirm">
+          <label class="field-label" for="pw-confirm">Confirmar senha <span class="req">*</span></label>
+          <input type="password" id="pw-confirm" placeholder="Repita a senha" autocomplete="new-password"/>
+          <div class="err">As senhas não coincidem.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6. TERMOS -->
+    <div class="card">
+      <div class="card-header">Termos e preferências</div>
+      <div class="check-field" id="cf-terms">
+        <div class="check-row required-check" id="cr-terms">
+          <div class="check-box"></div>
+          <div class="check-text">
+            Li e concordo com os <span class="terms-link" id="open-terms">Termos de Uso</span> e estou ciente de que estou acessando uma versão beta em desenvolvimento, sujeita a erros, instabilidades e possíveis reinicializações do sistema. <span class="req">*</span>
+          </div>
+        </div>
+        <div class="err">Você precisa aceitar os Termos de Uso para continuar.</div>
+      </div>
+      <div class="check-field" id="cf-news">
+        <div class="check-row optional-check" id="cr-news">
+          <div class="check-box"></div>
+          <div class="check-text">
+            Quero receber novidades, descontos e ofertas sobre cursos, masterclasses e comunidade da Hīrō Contents.
+            <span style="color:var(--text3);font-size:12px"> (opcional)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SUBMIT -->
+    <div class="card" style="padding:16px">
+      <button type="submit" class="btn-submit" id="btn">
+        <span>Garantir acesso beta gratuito</span>
+        <div class="spin"></div>
+      </button>
+      <p class="submit-note">3 semanas grátis · Sem cartão agora · Após o beta: assinatura</p>
+      <div id="global-err"></div>
+    </div>
+
+  </form>
+
+  <div id="success">
+    <div class="s-ring">✦</div>
+    <div class="s-title">Bem-vindo à <span>Dojo Utilities</span></div>
+    <p class="s-desc">Parabéns pela excelente escolha! Seu acesso beta foi criado com sucesso. Aproveite 3 semanas explorando todas as ferramentas — feitas para quem leva o audiovisual a sério.</p>
+    <div class="s-count">Redirecionando em <strong id="count">5</strong>s...</div>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+  import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
+  import { getFirestore, collection, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-analytics.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAY7bp5HQlnlFZjNYXiDD5ypIsv_Erlqac",
+    authDomain: "michael-portfolio-b422a.firebaseapp.com",
+    projectId: "michael-portfolio-b422a",
+    storageBucket: "michael-portfolio-b422a.firebasestorage.app",
+    messagingSenderId: "559642725027",
+    appId: "1:559642725027:web:f7916f73449ff214298d16",
+    measurementId: "G-F5RWB8BSE1"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db   = getFirestore(app);
+  const analytics = getAnalytics(app);
+  const g = id => document.getElementById(id);
+
+  // ── DATE PICKER ──
+  const MONTHS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  const currentYear = new Date().getFullYear();
+
+  // Populate months
+  const monthSel = g('birth-month');
+  MONTHS.forEach((m, i) => {
+    const opt = document.createElement('option');
+    opt.value = String(i + 1);
+    opt.textContent = m;
+    monthSel.appendChild(opt);
+  });
+
+  // Populate years (from current year down to 1920)
+  const yearSel = g('birth-year');
+  for (let y = currentYear; y >= 1920; y--) {
+    const opt = document.createElement('option');
+    opt.value = String(y);
+    opt.textContent = y;
+    yearSel.appendChild(opt);
+  }
+
+  function updateDays() {
+    const daySel = g('birth-day');
+    const prevDay = daySel.value;
+    const month = parseInt(g('birth-month').value) || 1;
+    const year = parseInt(g('birth-year').value) || currentYear;
+    const daysInMonth = new Date(year, month, 0).getDate();
+
+    // Keep only the placeholder
+    daySel.innerHTML = '<option value="">--</option>';
+    for (let d = 1; d <= daysInMonth; d++) {
+      const opt = document.createElement('option');
+      opt.value = String(d);
+      opt.textContent = String(d).padStart(2, '0');
+      daySel.appendChild(opt);
+    }
+    // Restore previous selection if still valid
+    if (prevDay && parseInt(prevDay) <= daysInMonth) {
+      daySel.value = prevDay;
+    }
+  }
+
+  // Initialize 31 days
+  updateDays();
+
+  // Update days when month or year changes
+  g('birth-month').addEventListener('change', updateDays);
+  g('birth-year').addEventListener('change', updateDays);
+
+  // Clear error on any date change
+  [g('birth-day'), g('birth-month'), g('birth-year')].forEach(el => {
+    el.addEventListener('change', () => g('f-birthdate').classList.remove('has-err'));
+  });
+
+  // ── COUNTRIES ──
+  const COUNTRIES = [
+    {flag:'🇧🇷',name:'Brasil',ddi:'+55'},
+    {flag:'🇺🇸',name:'Estados Unidos',ddi:'+1'},
+    {flag:'🇵🇹',name:'Portugal',ddi:'+351'},
+    {flag:'🇦🇷',name:'Argentina',ddi:'+54'},
+    {flag:'🇨🇱',name:'Chile',ddi:'+56'},
+    {flag:'🇨🇴',name:'Colômbia',ddi:'+57'},
+    {flag:'🇲🇽',name:'México',ddi:'+52'},
+    {flag:'🇵🇪',name:'Peru',ddi:'+51'},
+    {flag:'🇺🇾',name:'Uruguai',ddi:'+598'},
+    {flag:'🇵🇾',name:'Paraguai',ddi:'+595'},
+    {flag:'🇧🇴',name:'Bolívia',ddi:'+591'},
+    {flag:'🇻🇪',name:'Venezuela',ddi:'+58'},
+    {flag:'🇪🇨',name:'Equador',ddi:'+593'},
+    {flag:'🇬🇧',name:'Reino Unido',ddi:'+44'},
+    {flag:'🇩🇪',name:'Alemanha',ddi:'+49'},
+    {flag:'🇫🇷',name:'França',ddi:'+33'},
+    {flag:'🇮🇹',name:'Itália',ddi:'+39'},
+    {flag:'🇪🇸',name:'Espanha',ddi:'+34'},
+    {flag:'🇯🇵',name:'Japão',ddi:'+81'},
+    {flag:'🇨🇦',name:'Canadá',ddi:'+1 CA'},
+    {flag:'🇦🇺',name:'Austrália',ddi:'+61'},
+    {flag:'🇮🇳',name:'Índia',ddi:'+91'},
+    {flag:'🇨🇳',name:'China',ddi:'+86'},
+    {flag:'🇦🇴',name:'Angola',ddi:'+244'},
+    {flag:'🇲🇿',name:'Moçambique',ddi:'+258'},
+  ];
+
+  let selectedCountry = COUNTRIES[0];
+  let dropdownOpen = false;
+
+  function renderCountryList(filter='') {
+    const list = g('country-list');
+    const filtered = filter
+      ? COUNTRIES.filter(c => c.name.toLowerCase().includes(filter.toLowerCase()) || c.ddi.includes(filter))
+      : COUNTRIES;
+    if (!filtered.length) { list.innerHTML='<div class="no-results">Nenhum país encontrado</div>'; return; }
+    list.innerHTML = filtered.map(c => `
+      <div class="country-item${c.name===selectedCountry.name?' selected':''}" data-name="${c.name}" data-ddi="${c.ddi}" data-flag="${c.flag}">
+        <span class="ci-flag">${c.flag}</span>
+        <span class="ci-name">${c.name}</span>
+        <span class="ci-ddi">(${c.ddi})</span>
+      </div>`).join('');
+    list.querySelectorAll('.country-item').forEach(item => {
+      item.addEventListener('click', () => {
+        selectedCountry = {flag:item.dataset.flag, name:item.dataset.name, ddi:item.dataset.ddi};
+        g('selected-flag').textContent = selectedCountry.flag;
+        g('selected-ddi').textContent  = `(${selectedCountry.ddi})`;
+        closeDropdown(); g('phone').focus();
+      });
+    });
+  }
+  function openDropdown()  { dropdownOpen=true;  g('country-dropdown').classList.add('open');    g('country-btn').classList.add('open');    g('country-search').value=''; renderCountryList(); setTimeout(()=>g('country-search').focus(),50); }
+  function closeDropdown() { dropdownOpen=false; g('country-dropdown').classList.remove('open'); g('country-btn').classList.remove('open'); }
+  g('country-btn').addEventListener('click', e => { e.stopPropagation(); dropdownOpen ? closeDropdown() : openDropdown(); });
+  g('country-search').addEventListener('input', function(){ renderCountryList(this.value); });
+  document.addEventListener('click', e => { if (dropdownOpen && !g('phone-wrap').contains(e.target)) closeDropdown(); });
+  g('country-dropdown').addEventListener('click', e => e.stopPropagation());
+  g('phone').addEventListener('focus', () => g('phone-wrap').classList.add('focused'));
+  g('phone').addEventListener('blur',  () => g('phone-wrap').classList.remove('focused'));
+  g('phone').addEventListener('input', function(){
+    const pos = this.selectionStart;
+    this.value = this.value.replace(/\D/g,'');
+    this.setSelectionRange(pos,pos);
+  });
+  g('phone').addEventListener('keydown', function(e){
+    if (!['Backspace','Delete','ArrowLeft','ArrowRight','Tab','Enter','Home','End'].includes(e.key) && !/^\d$/.test(e.key)) e.preventDefault();
+  });
+  renderCountryList();
+
+  // ── MULTI-CHECKBOX tipo de conteúdo ──
+  g('ctype-group').querySelectorAll('.mc-item').forEach(item => {
+    item.addEventListener('click', () => {
+      item.classList.toggle('checked');
+      if (g('ctype-group').querySelector('.mc-item.checked')) {
+        g('f-content-type').classList.remove('has-err');
+      }
+    });
+  });
+  function getContentTypes() {
+    return [...g('ctype-group').querySelectorAll('.mc-item.checked')].map(i => i.dataset.val);
+  }
+
+  // ── ROLE: estudante ──
+  g('role').addEventListener('change', function(){
+    const isStu = this.value === 'Estudante';
+    g('student-block').classList.toggle('show', isStu);
+    g('f-time').classList.toggle('show', !isStu);
+    g('f-content-type').classList.toggle('show', !isStu);
+    // Oculta QUALIFICAÇÃO para estudantes
+    g('card-qualificacao').style.display = isStu ? 'none' : '';
+    if (isStu) {
+      g('time-in-field').value=''; g('f-time').classList.remove('has-err');
+      g('ctype-group').querySelectorAll('.mc-item').forEach(i=>i.classList.remove('checked'));
+      g('f-content-type').classList.remove('has-err');
+      g('projects').value=''; g('team').value=''; g('regime').value='';
+      g('f-projects').classList.remove('has-err'); g('f-team').classList.remove('has-err'); g('f-regime').classList.remove('has-err');
+    } else {
+      g('course').value=''; g('semester').value='';
+      g('f-course').classList.remove('has-err'); g('f-semester').classList.remove('has-err');
+    }
+  });
+
+  // ── CHECKBOXES (termos) ──
+  let termsAccepted=false, newsAccepted=false;
+  g('cr-terms').addEventListener('click', e => {
+    if (e.target.id==='open-terms') return;
+    termsAccepted=!termsAccepted;
+    g('cr-terms').classList.toggle('active', termsAccepted);
+    if (termsAccepted) g('cf-terms').classList.remove('has-err');
+  });
+  g('cr-news').addEventListener('click', () => { newsAccepted=!newsAccepted; g('cr-news').classList.toggle('active', newsAccepted); });
+
+  // ── MODAL ──
+  const openModal  = () => { g('modal-overlay').classList.add('open'); document.body.style.overflow='hidden'; };
+  const closeModal = () => { g('modal-overlay').classList.remove('open'); document.body.style.overflow=''; };
+  g('open-terms').addEventListener('click', e => { e.stopPropagation(); openModal(); });
+  g('modal-close').addEventListener('click', closeModal);
+  g('modal-overlay').addEventListener('click', e => { if (e.target===g('modal-overlay')) closeModal(); });
+  g('modal-accept').addEventListener('click', () => { closeModal(); termsAccepted=true; g('cr-terms').classList.add('active'); g('cf-terms').classList.remove('has-err'); });
+
+  // ── PASSWORD STRENGTH ──
+  g('password').addEventListener('input', function(){
+    const v=this.value, bars=['pb1','pb2','pb3','pb4'].map(id=>g(id));
+    bars.forEach(b=>b.style.background='var(--border2)'); if (!v) return;
+    let s=0;
+    if (v.length>=6)s++; if (v.length>=10)s++;
+    if (/[A-Z]/.test(v)&&/[0-9]/.test(v))s++; if (/[^A-Za-z0-9]/.test(v))s++;
+    const col=['#ff5f5f','#ffaa3c','#e8c84a','#00c896'];
+    for (let i=0;i<s;i++) bars[i].style.background=col[s-1];
+  });
+
+  // ── VALIDATE ──
+  function vf(id,ok){ const w=g(id); if(w) ok?w.classList.remove('has-err'):w.classList.add('has-err'); return ok; }
+
+  // ── SUBMIT ──
+  g('form').addEventListener('submit', async e => {
+    e.preventDefault();
+    const name     = g('name').value.trim();
+    const email    = g('email').value.trim();
+    const phone    = g('phone').value.trim();
+    const role     = g('role').value;
+    const isStu    = role==='Estudante';
+    const course   = g('course').value.trim();
+    const semester = g('semester').value;
+    const timeVal  = g('time-in-field').value;
+    const ctypes   = getContentTypes();
+    const projects = g('projects').value;
+    const team     = g('team').value;
+    const regime   = g('regime').value;
+    // Compose birthdate from dropdowns
+    const bDay = g('birth-day').value;
+    const bMonth = g('birth-month').value;
+    const bYear = g('birth-year').value;
+    const birthdate = (bDay && bMonth && bYear) ? `${bYear}-${bMonth.padStart(2,'0')}-${bDay.padStart(2,'0')}` : '';
+    g('birthdate').value = birthdate;
+    const gender   = g('gender').value;
+    const knew     = g('knew').value;
+    const channels = g('channels').value;
+    const consumed = g('content-consumed').value;
+    const motiv    = g('motivation').value;
+    const pw       = g('password').value;
+    const pwc      = g('pw-confirm').value;
+
+    let ok=true;
+    ok=vf('f-name',   name.length>1)&&ok;
+    ok=vf('f-email',  /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))&&ok;
+    if (phone.length>0) ok=vf('f-phone', phone.replace(/\D/g,'').length>=7)&&ok;
+    else g('f-phone').classList.remove('has-err');
+    ok=vf('f-birthdate', birthdate!=='')&&ok;
+    ok=vf('f-gender',    gender!=='')&&ok;
+    ok=vf('f-role', role!=='')&&ok;
+    if (isStu) {
+      ok=vf('f-course',   course.length>1)&&ok;
+      ok=vf('f-semester', semester!=='')&&ok;
+    } else {
+      ok=vf('f-time', timeVal!=='')&&ok;
+      if (ctypes.length===0){ g('f-content-type').classList.add('has-err'); ok=false; }
+      else g('f-content-type').classList.remove('has-err');
+    }
+    if (!isStu) {
+      ok=vf('f-projects',        projects!=='')&&ok;
+      ok=vf('f-team',            team!=='')&&ok;
+      ok=vf('f-regime',          regime!=='')&&ok;
+    }
+    ok=vf('f-knew',            knew!=='')&&ok;
+    ok=vf('f-channels',        channels!=='')&&ok;
+    ok=vf('f-content-consumed',consumed!=='')&&ok;
+    ok=vf('f-motivation',      motiv!=='')&&ok;
+    ok=vf('f-password',        pw.length>=6)&&ok;
+    ok=vf('f-pw-confirm',      pw===pwc&&pwc.length>0)&&ok;
+    if (!termsAccepted){ g('cf-terms').classList.add('has-err'); ok=false; }
+    if (!ok){ document.querySelector('.has-err')?.scrollIntoView({behavior:'smooth',block:'center'}); return; }
+
+    const btn=g('btn'), gerr=g('global-err');
+    btn.disabled=true; btn.classList.add('loading'); gerr.style.display='none';
+
+    try {
+      const cred = await createUserWithEmailAndPassword(auth, email, pw);
+      
+      // Capture traffic source from localStorage (saved by the Next.js hook)
+      let source = null;
+      try {
+        const stored = localStorage.getItem('traffic_source');
+        if (stored) source = JSON.parse(stored);
+      } catch (e) {
+        console.warn('Erro ao ler traffic_source do localStorage');
+      }
+
+      const lead = {
+        uid:cred.user.uid, name, email, role, knew, channels, birthdate, gender,
+        contentConsumed:consumed, motivation:motiv,
+        termsAccepted:true, newsOptIn:newsAccepted,
+        betaUser:true, createdAt:serverTimestamp(),
+        source: source // Adicionando origem do tráfego
+      };
+      if (phone) lead.phone = selectedCountry.ddi.replace(/\s.*$/,'') + phone;
+      if (isStu) { lead.course=course; lead.semester=semester; }
+      else       { lead.timeInField=timeVal; lead.contentTypes=ctypes; lead.projects=projects; lead.team=team; lead.regime=regime; }
+      
+      // Use setDoc to force the document ID to be the same as the Auth UID
+      await setDoc(doc(db, 'leads', cred.user.uid), lead);
+
+      g('form').style.display='none';
+      g('topbar').style.display='none';
+      g('success').classList.add('show');
+      let c=5;
+      const iv=setInterval(()=>{ c--; g('count').textContent=c; if(c<=0){clearInterval(iv);window.location.href='/login';} },1000);
+
+    } catch(err) {
+      btn.disabled=false; btn.classList.remove('loading');
+      gerr.style.display='block';
+      console.error('Firebase error:', err.code, err.message);
+      const msgs = {
+        'auth/email-already-in-use':'Este e-mail já está cadastrado. Acesse o login diretamente.',
+        'auth/invalid-email':'E-mail inválido. Verifique e tente novamente.',
+        'auth/weak-password':'Senha muito fraca. Use pelo menos 6 caracteres.',
+        'auth/network-request-failed':'Sem conexão com a internet. Verifique sua rede e tente novamente.',
+        'auth/too-many-requests':'Muitas tentativas. Aguarde alguns minutos e tente novamente.',
+        'auth/operation-not-allowed':'Cadastro por e-mail não está habilitado. Entre em contato com o suporte.',
+        'auth/invalid-credential': 'Credenciais inválidas. Se você já tem conta, tente fazer login.',
+        'permission-denied': 'Erro de permissão no banco de dados. Contate o suporte.'
+      };
+      gerr.textContent = msgs[err.code] || `Erro (${err.code}): tente novamente ou contate o suporte.`;
+    }
+  });
+</script>
+</body>
+</html>
