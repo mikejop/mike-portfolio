@@ -141,24 +141,62 @@ const RoteiroDecorationExtension = Extension.create({
                                     const isFocused = (selection.from >= start && selection.from <= end) ||
                                                       (selection.to >= start && selection.to <= end);
 
-                                    // Determine inline tag styling style attribute
-                                    let style = "";
                                     if (tagType === 'CHAR') {
+                                        // CHAR: split into 3 decorations so markup is invisible
+                                        // and the name appears as plain colored uppercase text
                                         const charColor = getCharacterColor(tagVal, charColorMap);
-                                        style = `color: ${charColor} !important;`;
-                                    } else if (lastActiveCharName && ['DIAL', 'VO', 'OFF', 'LOC', 'ENTREVISTA'].includes(tagType)) {
-                                        const charColor = getCharacterColor(lastActiveCharName, charColorMap);
-                                        style = `color: ${charColor} !important; opacity: 0.85;`;
-                                    }
+                                        const prefixLen = 6; // "[CHAR:" = 6 chars
+                                        const nameStart = start + prefixLen;
+                                        const nameEnd = end - 1; // position of "]"
 
-                                    decorations.push(
-                                        Decoration.inline(start, end, {
-                                            class: `roteiro-tag roteiro-tag-${tagType.toLowerCase()} ${isFocused ? 'roteiro-tag-focused' : 'roteiro-tag-blurred'}`,
-                                            style,
-                                            'data-tag': tagType,
-                                            'data-val': tagVal
-                                        })
-                                    );
+                                        // 1. Hide "[CHAR:" prefix
+                                        decorations.push(
+                                            Decoration.inline(start, start + prefixLen, {
+                                                class: 'roteiro-char-markup',
+                                            })
+                                        );
+
+                                        // 2. Name — visible, uppercase, character color
+                                        if (nameEnd > nameStart) {
+                                            decorations.push(
+                                                Decoration.inline(nameStart, nameEnd, {
+                                                    class: `roteiro-char-name ${isFocused ? '' : 'roteiro-char-name-blurred'}`,
+                                                    style: `color: ${charColor} !important;`,
+                                                })
+                                            );
+                                        }
+
+                                        // 3. Hide "]" suffix
+                                        decorations.push(
+                                            Decoration.inline(end - 1, end, {
+                                                class: 'roteiro-char-markup',
+                                            })
+                                        );
+
+                                        // Preserve data attributes on full span (used by block decoration & autocomplete)
+                                        decorations.push(
+                                            Decoration.inline(start, end, {
+                                                'data-tag': tagType,
+                                                'data-val': tagVal,
+                                            })
+                                        );
+                                    } else {
+                                        // Generic decoration for all other tag types
+                                        let style = "";
+                                        if (lastActiveCharName && ['DIAL', 'VO', 'OFF', 'LOC', 'ENTREVISTA'].includes(tagType)) {
+                                            const charColor = getCharacterColor(lastActiveCharName, charColorMap);
+                                            style = `color: ${charColor} !important; opacity: 0.85;`;
+                                        }
+
+                                        decorations.push(
+                                            Decoration.inline(start, end, {
+                                                class: `roteiro-tag roteiro-tag-${tagType.toLowerCase()} ${isFocused ? 'roteiro-tag-focused' : 'roteiro-tag-blurred'}`,
+                                                style,
+                                                'data-tag': tagType,
+                                                'data-val': tagVal
+                                            })
+                                        );
+                                    }
                                 }
 
                                 // Apply block decoration to paragraph if tag is at the start
@@ -217,7 +255,8 @@ interface CollaborativeEditorProps {
 }
 
 const cleanAndNormalizeText = (text: string) => {
-    return text.replace(/\[CHAR:([^\]]*)\]/gi, (match, name) => `[CHAR:${name.toUpperCase()}]`);
+    // Text is stored as typed — CSS handles uppercase rendering for labels
+    return text;
 };
 
 const getSlashQuery = (editor: Editor) => {
@@ -530,7 +569,8 @@ export function CollaborativeEditor({
         const from = $from.before() + 1;
         const to = $from.after() - 1;
         
-        const tag = `[CHAR:${name.toUpperCase()}]`;
+        // Store name as typed — CSS applies uppercase rendering
+        const tag = `[CHAR:${name}]`;
         editor.chain()
             .focus()
             .insertContentAt({ from, to }, tag)

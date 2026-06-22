@@ -238,34 +238,49 @@
   font-size: 0.875rem !important;
 }
 
-/* Specific Label Translations when Blurred */
-/* CHAR Tag */
-.roteiro-tag-char {
-  color: #5B9BD5;
-  text-transform: uppercase;
-}
-.roteiro-tag-blurred.roteiro-tag-char::before {
-  content: attr(data-val) ": ";
-  text-transform: uppercase;
-  font-weight: 700;
-  letter-spacing: 0.05em;
+/* CHAR split-decoration approach:
+   [CHAR: prefix and ] suffix are always hidden
+   Only the typed name is visible, in uppercase with character color */
+
+/* Always hide the markup brackets [CHAR: and ] */
+.roteiro-char-markup {
+  font-size: 0 !important;
+  opacity: 0;
+  user-select: none;
+  pointer-events: none;
+  display: inline;
 }
 
-/* Dialogue Qualifiers */
+/* Character name — visible, uppercase, bold, colored */
+.roteiro-char-name {
+  text-transform: uppercase !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.06em;
+  font-size: 0.875rem;
+  display: inline;
+}
+
+/* Blurred state: add colon after name (MICHAEL:) */
+.roteiro-char-name-blurred::after {
+  content: ":";
+  font-weight: 700;
+}
+
+/* Dialogue Qualifiers — labels always uppercase */
 .roteiro-tag-dial { color: #85B7EB; }
-.roteiro-tag-blurred.roteiro-tag-dial::before { content: "DIAL: "; }
+.roteiro-tag-blurred.roteiro-tag-dial::before { content: "DIAL: "; text-transform: uppercase; font-weight: 700; }
 
 .roteiro-tag-vo { color: #85B7EB; }
-.roteiro-tag-blurred.roteiro-tag-vo::before { content: "VO: "; }
+.roteiro-tag-blurred.roteiro-tag-vo::before { content: "VO: "; text-transform: uppercase; font-weight: 700; }
 
 .roteiro-tag-off { color: #85B7EB; }
-.roteiro-tag-blurred.roteiro-tag-off::before { content: "OFF: "; }
+.roteiro-tag-blurred.roteiro-tag-off::before { content: "OFF: "; text-transform: uppercase; font-weight: 700; }
 
 .roteiro-tag-loc { color: #85B7EB; }
-.roteiro-tag-blurred.roteiro-tag-loc::before { content: "LOC: "; }
+.roteiro-tag-blurred.roteiro-tag-loc::before { content: "LOC: "; text-transform: uppercase; font-weight: 700; }
 
 .roteiro-tag-entrevista { color: #85B7EB; }
-.roteiro-tag-blurred.roteiro-tag-entrevista::before { content: "ENTREVISTA: "; }
+.roteiro-tag-blurred.roteiro-tag-entrevista::before { content: "ENTREVISTA: "; text-transform: uppercase; font-weight: 700; }
 
 /* Trilha sonora — inline element: label is fixed, content follows after the tag */
 .roteiro-tag-trilha { color: #9B7FDD; }
