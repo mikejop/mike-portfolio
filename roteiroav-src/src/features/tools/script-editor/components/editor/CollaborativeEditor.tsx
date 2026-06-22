@@ -511,6 +511,7 @@ export function CollaborativeEditor({
     const [dummyValue, setDummyValue] = useState(value);
     const dummyRef = useRef<HTMLTextAreaElement>(null);
     const hasModifiedRef = useRef(false);
+    const lastEnterRef = useRef<{ time: number; pos: number } | null>(null);
 
     const [selectedVisualElementKey, setSelectedVisualElementKey] = useState<string | null>(null);
     const [slashMenu, setSlashMenu] = useState<{
@@ -828,6 +829,47 @@ export function CollaborativeEditor({
                         ...(id ? { id } : {}),
                     },
                     handleKeyDown: (view, event) => {
+                        // Enter intercept on DIAL/speech blocks
+                        if (event.key === 'Enter' && !event.shiftKey && ed) {
+                            const { selection } = ed.state;
+                            const { $from } = selection;
+                            const text = $from.parent.textContent;
+                            const dialMatch = text.match(/^\[(DIAL|VO|OFF|LOC|ENTREVISTA)\]/);
+                            if (dialMatch) {
+                                event.preventDefault();
+                                const tagType = dialMatch[1];
+                                const now = Date.now();
+                                const lastEnter = lastEnterRef.current;
+                                
+                                // Update ref first
+                                lastEnterRef.current = { time: now, pos: $from.pos };
+
+                                if (lastEnter && (now - lastEnter.time <= 100)) {
+                                    // Exit Dial: remove the [TAG] prefix from the current paragraph
+                                    const startPos = $from.start();
+                                    const deleteLen = tagType.length + 3; // e.g. "[DIAL] " has length 7
+                                    
+                                    const parentEnd = $from.end();
+                                    const safeEnd = Math.min(startPos + deleteLen, parentEnd);
+                                    
+                                    ed.chain()
+                                        .deleteRange({ from: startPos, to: safeEnd })
+                                        .focus(startPos)
+                                        .run();
+                                    return true;
+                                } else {
+                                    // Continue Dial: insert new paragraph with same tag below
+                                    const pos = $from.after();
+                                    const tagPrefix = `[${tagType}] `;
+                                    ed.chain()
+                                        .insertContentAt(pos, `<p>${tagPrefix}</p>`)
+                                        .focus(pos + tagPrefix.length + 1) // e.g. pos + 7 + 1 = pos + 8 for DIAL
+                                        .run();
+                                    return true;
+                                }
+                            }
+                        }
+
                         // Enter intercept on Character names: auto-insert [DIAL] block below
                         if (event.key === 'Enter' && !event.shiftKey && ed) {
                             const { selection } = ed.state;
