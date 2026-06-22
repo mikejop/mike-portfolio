@@ -1,15 +1,91 @@
 import { useEffect, useState, useRef } from "react";
-import { Editor, EditorContent } from "@tiptap/react";
+import { Editor, EditorContent, Extension } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Collaboration from "@tiptap/extension-collaboration";
 import Placeholder from "@tiptap/extension-placeholder";
 import * as Y from "yjs";
+import { Plugin, PluginKey } from "prosemirror-state";
+import { Decoration, DecorationSet } from "prosemirror-view";
 import { createFirestoreProvider } from "../../services/firestoreYjsProvider";
 import { cn } from "@/lib/utils";
 import { useScriptStore } from "../../store/useScriptStore";
 
+// ProseMirror decoration plugin to visually render structured script elements
+const RoteiroDecorationExtension = Extension.create({
+    name: 'roteiroDecoration',
+
+    addProseMirrorPlugins() {
+        return [
+            new Plugin({
+                key: new PluginKey('roteiroDecoration'),
+                state: {
+                    init() { return DecorationSet.empty; },
+                    apply(tr, oldSet, oldState, newState) {
+                        const { doc } = tr;
+                        const decorations: Decoration[] = [];
+
+                        doc.descendants((node, pos) => {
+                            if (node.isTextblock) {
+                                const text = node.textContent;
+                                const regex = /\[([A-Z_]+)(?::([^\]]*))?\]/g;
+                                let match;
+                                let firstTagType: string | null = null;
+                                let firstMatchIdx = -1;
+
+                                while ((match = regex.exec(text)) !== null) {
+                                    const start = pos + 1 + match.index;
+                                    const end = start + match[0].length;
+                                    const tagType = match[1];
+                                    const tagVal = match[2] || "";
+
+                                    if (firstMatchIdx === -1) {
+                                        firstMatchIdx = match.index;
+                                        firstTagType = tagType;
+                                    }
+
+                                    const { selection } = newState;
+                                    const isFocused = (selection.from >= start && selection.from <= end) ||
+                                                      (selection.to >= start && selection.to <= end);
+
+                                    decorations.push(
+                                        Decoration.inline(start, end, {
+                                            class: `roteiro-tag roteiro-tag-${tagType.toLowerCase()} ${isFocused ? 'roteiro-tag-focused' : 'roteiro-tag-blurred'}`,
+                                            'data-tag': tagType,
+                                            'data-val': tagVal
+                                        })
+                                    );
+                                }
+
+                                // Apply block decoration to paragraph if tag is at the start (ignoring spaces)
+                                if (firstTagType && firstMatchIdx !== -1) {
+                                    const textBeforeFirstTag = text.slice(0, firstMatchIdx);
+                                    if (textBeforeFirstTag.trim() === "") {
+                                        decorations.push(
+                                            Decoration.node(pos, pos + node.nodeSize, {
+                                                class: `roteiro-block roteiro-block-${firstTagType.toLowerCase()}`
+                                            })
+                                        );
+                                    }
+                                }
+                            }
+                        });
+
+                        return DecorationSet.create(doc, decorations);
+                    }
+                },
+                props: {
+                    decorations(state) {
+                        return this.getState(state);
+                    }
+                }
+            })
+        ];
+    }
+});
+
 interface CollaborativeEditorProps {
-    collectionPath: string;
+    collectionPath?: string;
+    field: 'audio' | 'visual';
     value?: string;
     placeholder?: string;
     disabled?: boolean;
@@ -21,8 +97,207 @@ interface CollaborativeEditorProps {
     onKeyDown?: (e: React.KeyboardEvent<Element>) => void;
 }
 
+const cleanAndNormalizeText = (text: string) => {
+    return text.replace(/\[CHAR:([^\]]*)\]/gi, (match, name) => `[CHAR:${name.toUpperCase()}]`);
+};
+
+const getSlashQuery = (editor: Editor) => {
+    const { selection } = editor.state;
+    const { $from } = selection;
+    const textOfBlock = $from.parent.textContent;
+    const caretPos = $from.parentOffset;
+    const textBeforeCaret = textOfBlock.slice(0, caretPos);
+
+    const lastSlashIdx = textBeforeCaret.lastIndexOf('/');
+    if (lastSlashIdx === -1) return null;
+
+    const queryText = textBeforeCaret.slice(lastSlashIdx + 1);
+
+    const textBeforeSlash = textBeforeCaret.slice(0, lastSlashIdx);
+    const isAtStart = textBeforeSlash.trim() === "";
+
+    if (!isAtStart) return null;
+    if (queryText.includes(' ')) return null;
+
+    return {
+        query: queryText,
+        slashIndex: lastSlashIdx,
+        caretPos
+    };
+};
+
+const getParentBlockType = (editor: Editor) => {
+    const { selection } = editor.state;
+    const { $from } = selection;
+    const textOfBlock = $from.parent.textContent;
+
+    if (textOfBlock.startsWith('[CHAR:')) return 'CHAR_NAME';
+    if (textOfBlock.startsWith('[DIAL]') || 
+        textOfBlock.startsWith('[VO]') || 
+        textOfBlock.startsWith('[OFF]') || 
+        textOfBlock.startsWith('[LOC]') || 
+        textOfBlock.startsWith('[ENTREVISTA]')) {
+        return 'CHAR_DIALOGUE';
+    }
+    if (textOfBlock.startsWith('[TRILHA]') || textOfBlock.startsWith('[TRILHA:')) return 'TRILHA';
+    if (textOfBlock.startsWith('[SFX]') || textOfBlock.startsWith('[SFX:')) return 'SFX';
+    return 'NONE';
+};
+
+const getAudioMenuOptions = (
+    query: string, 
+    parentType: string, 
+    onSelectTag: (markup: string) => void, 
+    onSelectSub: (val: string) => void
+) => {
+    const q = query.toLowerCase().trim();
+
+    if (parentType === 'NONE') {
+        const mains = [
+            { label: 'Personagem (/char)', cmd: 'char', markup: '[CHAR:]' },
+            { label: 'Trilha Sonora (/trilha)', cmd: 'trilha', markup: '[TRILHA]' },
+            { label: 'Efeito Sonoro (/sfx)', cmd: 'sfx', markup: '[SFX]' }
+        ];
+        return mains
+            .filter(m => !q || m.label.toLowerCase().includes(q) || m.cmd.includes(q))
+            .map(m => ({
+                label: m.label,
+                command: `/${m.cmd}`,
+                action: () => onSelectTag(m.markup)
+            }));
+    }
+
+    if (parentType === 'CHAR_DIALOGUE') {
+        const subs = [
+            { label: 'DIAL (/dial)', cmd: 'dial', val: 'DIAL' },
+            { label: 'VO (/vo)', cmd: 'vo', val: 'VO' },
+            { label: 'OFF (/off)', cmd: 'off', val: 'OFF' },
+            { label: 'LOC (/loc)', cmd: 'loc', val: 'LOC' },
+            { label: 'ENTREVISTA (/entrevista)', cmd: 'entrevista', val: 'ENTREVISTA' }
+        ];
+        return subs
+            .filter(s => !q || s.label.toLowerCase().includes(q) || s.cmd.includes(q))
+            .map(s => ({
+                label: s.label,
+                command: `/${s.cmd}`,
+                action: () => onSelectSub(s.val)
+            }));
+    }
+
+    if (parentType === 'TRILHA') {
+        const subs = [
+            { label: 'Original (/original)', cmd: 'original', val: 'Original' },
+            { label: 'Banco (/banco)', cmd: 'banco', val: 'Banco' },
+            { label: 'Diegética (/diegetica)', cmd: 'diegetica', val: 'Diegética' },
+            { label: 'Não-Diegética (/naodiegetica)', cmd: 'naodiegetica', val: 'Não-Diegética' },
+            { label: 'Tema (/tema)', cmd: 'tema', val: 'Tema' }
+        ];
+        return subs
+            .filter(s => !q || s.label.toLowerCase().includes(q) || s.cmd.includes(q))
+            .map(s => ({
+                label: s.label,
+                command: `/${s.cmd}`,
+                action: () => onSelectSub(s.val)
+            }));
+    }
+
+    if (parentType === 'SFX') {
+        const subs = [
+            { label: 'Som Ambiente (/ambiente)', cmd: 'ambiente', val: 'Som Ambiente' },
+            { label: 'Foley (/foley)', cmd: 'foley', val: 'Foley' },
+            { label: 'Hard SFX (/hardsfx)', cmd: 'hardsfx', val: 'Hard SFX' },
+            { label: 'Silêncio (/silencio)', cmd: 'silencio', val: 'Silêncio' }
+        ];
+        return subs
+            .filter(s => !q || s.label.toLowerCase().includes(q) || s.cmd.includes(q))
+            .map(s => ({
+                label: s.label,
+                command: `/${s.cmd}`,
+                action: () => onSelectSub(s.val)
+            }));
+    }
+
+    return [];
+};
+
+const getVisualMenuOptions = (
+    query: string, 
+    selectedVisualElementKey: string | null,
+    onSelectElement: (el: string) => void, 
+    onSelectSub: (el: string, sub: string) => void
+) => {
+    const q = query.toLowerCase().trim();
+    
+    const elements = [
+        { key: 'PLANO', label: 'PLANO', cmd: 'plano', subs: ['PE', 'PG', 'PC', 'PAM', 'PM', 'PP', 'PPP', 'PD'] },
+        { key: 'ANGULO', label: 'ÂNGULO DE CÂMERA', cmd: 'angulo', subs: ['Normal', 'Plongée', 'Contra-plongée', 'Zenital', 'Câmera Overhead', 'Dutch Angle'] },
+        { key: 'POSICAO', label: 'POSIÇÃO / ORIENTAÇÃO', cmd: 'posicao', subs: ['Frontal', '3/4', 'Perfil', 'Costas', 'Campo', 'Contracampo', 'POV'] },
+        { key: 'MOVCAM', label: 'MOVIMENTO DE CÂMERA', cmd: 'movcam', subs: ['Estática', 'Pan', 'Tilt', 'Travelling', 'Steadicam', 'Grua', 'Crane', 'Drone', 'Arco', 'Chicote', 'Plano-sequência'] },
+        { key: 'LENTE', label: 'MOVIMENTO DE OBJETIVA', cmd: 'lente', subs: ['Zoom in', 'Zoom out', 'Rack focus', 'Foco seletivo', 'Profundidade de campo ampla', 'Dolly zoom'] },
+        { key: 'LUZ', label: 'ILUMINAÇÃO', cmd: 'luz', subs: ['High key', 'Low key', 'Chiaroscuro', 'Luz natural', 'Luz artificial', 'Temperatura de cor', 'Contraluz', 'Luz motivada'] },
+        { key: 'TRANSICAO', label: 'TRANSIÇÕES E MONTAGEM', cmd: 'transicao', subs: ['Corte seco', 'Fade in', 'Fade out', 'Dissolve', 'Wipe', 'Match cut', 'Paralela', 'Jump cut', 'Elipse'] },
+        { key: 'INSERCAO', label: 'INSERÇÕES VISUAIS', cmd: 'insercao', subs: ['Texto na tela', 'Lower thirds', 'Legendas', 'Grafismos', 'Motion graphics', 'Imagem arquivo', 'Material de acervo', 'Tela dentro da tela', 'Simulação', 'Animação 2D', 'Animação 3D', 'Infográfico'] }
+    ];
+
+    if (selectedVisualElementKey) {
+        const el = elements.find(x => x.key === selectedVisualElementKey);
+        if (el) {
+            return el.subs
+                .filter(sub => !q || sub.toLowerCase().includes(q))
+                .map(sub => ({
+                    label: sub,
+                    command: sub,
+                    action: () => onSelectSub(selectedVisualElementKey, sub)
+                }));
+        }
+    }
+
+    if (!q) {
+        return elements.map(el => ({
+            label: `${el.label} (/${el.cmd})`,
+            command: `/${el.cmd}`,
+            action: () => onSelectElement(el.key)
+        }));
+    }
+
+    const matchedElement = elements.find(el => el.cmd === q || el.key.toLowerCase() === q);
+    if (matchedElement) {
+        return matchedElement.subs.map(sub => ({
+            label: sub,
+            command: sub,
+            action: () => onSelectSub(matchedElement.key, sub)
+        }));
+    }
+
+    const options: any[] = [];
+    elements.forEach(el => {
+        if (el.label.toLowerCase().includes(q) || el.cmd.includes(q)) {
+            options.push({
+                label: `${el.label} (/${el.cmd})`,
+                command: `/${el.cmd}`,
+                action: () => onSelectElement(el.key)
+            });
+        }
+    });
+
+    elements.forEach(el => {
+        el.subs.forEach(sub => {
+            if (sub.toLowerCase().includes(q) && !options.some(opt => opt.label === sub)) {
+                options.push({
+                    label: `${sub} (${el.label})`,
+                    command: sub,
+                    action: () => onSelectSub(el.key, sub)
+                });
+            }
+        });
+    });
+
+    return options;
+};
+
 export function CollaborativeEditor({
     collectionPath,
+    field,
     value = "",
     placeholder = "",
     disabled = false,
@@ -40,6 +315,30 @@ export function CollaborativeEditor({
     const dummyRef = useRef<HTMLTextAreaElement>(null);
     const hasModifiedRef = useRef(false);
 
+    const [selectedVisualElementKey, setSelectedVisualElementKey] = useState<string | null>(null);
+    const [slashMenu, setSlashMenu] = useState<{
+        visible: boolean;
+        query: string;
+        x: number;
+        y: number;
+        options: { label: string; command: string; action: () => void }[];
+        activeIndex: number;
+    }>({
+        visible: false,
+        query: "",
+        x: 0,
+        y: 0,
+        options: [],
+        activeIndex: 0
+    });
+
+    // Synchronize local Tiptap editor content with value if external updates happen
+    useEffect(() => {
+        if (editor && !collectionPath && value !== editor.getText()) {
+            editor.commands.setContent(value);
+        }
+    }, [value, editor, collectionPath]);
+
     // Keep dummy value in sync with external updates if the editor isn't loaded yet
     useEffect(() => {
         if (!editor) {
@@ -50,7 +349,6 @@ export function CollaborativeEditor({
     // Handle focus and state transitions when the real editor loads
     useEffect(() => {
         if (editor) {
-            // Check if the dummy textarea currently has focus
             const wasFocused = dummyRef.current && document.activeElement === dummyRef.current;
             const shouldFocus = wasFocused || (id && focusedFieldId === id);
 
@@ -92,9 +390,145 @@ export function CollaborativeEditor({
     const handleDummyChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         setDummyValue(e.target.value);
         hasModifiedRef.current = true;
-        onUpdate?.(e.target.value);
+        const normalized = cleanAndNormalizeText(e.target.value);
+        onUpdate?.(normalized);
         adjustDummyHeight();
     };
+
+    const insertAudioTag = (editor: Editor, tagMarkup: string) => {
+        const { selection } = editor.state;
+        const { $from } = selection;
+        const from = $from.before() + 1;
+        const to = $from.after() - 1;
+        
+        editor.chain()
+            .focus()
+            .insertContentAt({ from, to }, tagMarkup)
+            .run();
+            
+        if (tagMarkup.includes('CHAR:')) {
+            editor.commands.setTextSelection(from + 6);
+        } else {
+            editor.commands.setTextSelection(from + tagMarkup.length);
+        }
+    };
+
+    const insertAudioSubTag = (editor: Editor, subVal: string) => {
+        const { selection } = editor.state;
+        const { $from } = selection;
+        const text = $from.parent.textContent;
+        
+        let newText = text;
+        if (text.startsWith('[TRILHA')) {
+            newText = text.replace(/\[TRILHA.*?\]\s*\/[a-z_]*/i, `[TRILHA:${subVal}] `);
+        } else if (text.startsWith('[SFX')) {
+            newText = text.replace(/\[SFX.*?\]\s*\/[a-z_]*/i, `[SFX:${subVal}] `);
+        } else if (text.startsWith('[DIAL') || text.startsWith('[VO') || text.startsWith('[OFF') || text.startsWith('[LOC') || text.startsWith('[ENTREVISTA')) {
+            newText = text.replace(/\[[A-Z]+\]\s*\/[a-z_]*/i, `[${subVal}] `);
+        } else if (text.startsWith('[CHAR:')) {
+            newText = text + ` [${subVal}]`;
+        }
+        
+        const from = $from.before() + 1;
+        const to = $from.after() - 1;
+        
+        editor.chain()
+            .focus()
+            .insertContentAt({ from, to }, newText)
+            .run();
+            
+        editor.commands.setTextSelection(from + newText.length);
+    };
+
+    const insertVisualTag = (editor: Editor, element: string, subelement: string) => {
+        const { selection } = editor.state;
+        const { $from } = selection;
+        const text = $from.parent.textContent;
+        const caretPos = $from.parentOffset;
+        const textBeforeCaret = text.slice(0, caretPos);
+        const lastSlashIdx = textBeforeCaret.lastIndexOf('/');
+        
+        if (lastSlashIdx !== -1) {
+            const from = $from.start() + lastSlashIdx;
+            const to = $from.start() + caretPos;
+            const tag = `[${element}:${subelement}] `;
+            
+            editor.chain()
+                .focus()
+                .insertContentAt({ from, to }, tag)
+                .run();
+                
+            editor.commands.setTextSelection(from + tag.length);
+        }
+    };
+
+    // Slash menu trigger listener
+    useEffect(() => {
+        if (!editor) return;
+
+        const updateHandler = () => {
+            const slashInfo = getSlashQuery(editor);
+            if (slashInfo) {
+                const { selection } = editor.state;
+                const coords = editor.view.coordsAtPos(selection.from);
+                const editorRect = editor.view.dom.getBoundingClientRect();
+                
+                const top = coords.bottom - editorRect.top + editor.view.dom.scrollTop + 4;
+                const left = coords.left - editorRect.left + editor.view.dom.scrollLeft;
+
+                const parentType = field === 'audio' ? getParentBlockType(editor) : 'NONE';
+                
+                let opts: any[] = [];
+                if (field === 'audio') {
+                    opts = getAudioMenuOptions(
+                        slashInfo.query, 
+                        parentType, 
+                        (markup) => {
+                            insertAudioTag(editor, markup);
+                            setSlashMenu(prev => ({ ...prev, visible: false }));
+                        }, 
+                        (subVal) => {
+                            insertAudioSubTag(editor, subVal);
+                            setSlashMenu(prev => ({ ...prev, visible: false }));
+                        }
+                    );
+                } else {
+                    opts = getVisualMenuOptions(
+                        slashInfo.query,
+                        selectedVisualElementKey,
+                        (elKey) => {
+                            setSelectedVisualElementKey(elKey);
+                        },
+                        (elKey, subVal) => {
+                            insertVisualTag(editor, elKey, subVal);
+                            setSelectedVisualElementKey(null);
+                            setSlashMenu(prev => ({ ...prev, visible: false }));
+                        }
+                    );
+                }
+
+                setSlashMenu({
+                    visible: opts.length > 0,
+                    query: slashInfo.query,
+                    x: left,
+                    y: top,
+                    options: opts,
+                    activeIndex: 0
+                });
+            } else {
+                setSlashMenu(prev => prev.visible ? { ...prev, visible: false } : prev);
+                setSelectedVisualElementKey(null);
+            }
+        };
+
+        editor.on('selectionUpdate', updateHandler);
+        editor.on('update', updateHandler);
+
+        return () => {
+            editor.off('selectionUpdate', updateHandler);
+            editor.off('update', updateHandler);
+        };
+    }, [editor, field, selectedVisualElementKey]);
 
     useEffect(() => {
         let isCancelled = false;
@@ -103,29 +537,34 @@ export function CollaborativeEditor({
         let ed: Editor | null = null;
 
         async function init() {
-            ydoc = new Y.Doc();
-            try {
-                provider = await createFirestoreProvider(ydoc, collectionPath);
-            } catch (err) {
-                console.error("Failed to initialize Yjs provider:", err);
+            let extensions = [
+                StarterKit,
+                Placeholder.configure({
+                    placeholder,
+                    emptyEditorClass: "before:content-[attr(data-placeholder)] before:text-white/10 before:float-left before:h-0 before:pointer-events-none",
+                }),
+                RoteiroDecorationExtension
+            ];
+
+            if (collectionPath) {
+                ydoc = new Y.Doc();
+                try {
+                    provider = await createFirestoreProvider(ydoc, collectionPath);
+                    extensions.push(Collaboration.configure({ fragment: ydoc.getXmlFragment('default') }));
+                } catch (err) {
+                    console.error("Failed to initialize Yjs provider:", err);
+                }
             }
 
             if (isCancelled) {
                 if (provider) provider.destroy();
-                ydoc.destroy();
+                if (ydoc) ydoc.destroy();
                 return;
             }
 
-            const fragment = ydoc.getXmlFragment('default');
             ed = new Editor({
-                extensions: [
-                    StarterKit,
-                    Collaboration.configure({ fragment }),
-                    Placeholder.configure({
-                        placeholder,
-                        emptyEditorClass: "before:content-[attr(data-placeholder)] before:text-white/10 before:float-left before:h-0 before:pointer-events-none",
-                    }),
-                ],
+                extensions,
+                content: !collectionPath ? value : undefined,
                 editable: !disabled,
                 editorProps: {
                     attributes: {
@@ -138,6 +577,55 @@ export function CollaborativeEditor({
                         ...(id ? { id } : {}),
                     },
                     handleKeyDown: (view, event) => {
+                        // Enter intercept on Character names: auto-insert [DIAL] block below
+                        if (event.key === 'Enter' && !event.shiftKey && ed) {
+                            const { selection } = ed.state;
+                            const { $from } = selection;
+                            const text = $from.parent.textContent;
+                            if (text.startsWith('[CHAR:')) {
+                                event.preventDefault();
+                                const pos = $from.after();
+                                ed.chain()
+                                    .insertContentAt(pos, '<p>[DIAL] </p>')
+                                    .focus(pos + 8)
+                                    .run();
+                                return true;
+                            }
+                        }
+
+                        // Slash menu keyboard navigation
+                        if (slashMenu.visible && slashMenu.options.length > 0) {
+                            if (event.key === 'ArrowDown') {
+                                event.preventDefault();
+                                setSlashMenu(prev => ({
+                                    ...prev,
+                                    activeIndex: (prev.activeIndex + 1) % prev.options.length
+                                }));
+                                return true;
+                            }
+                            if (event.key === 'ArrowUp') {
+                                event.preventDefault();
+                                setSlashMenu(prev => ({
+                                    ...prev,
+                                    activeIndex: (prev.activeIndex - 1 + prev.options.length) % prev.options.length
+                                }));
+                                return true;
+                            }
+                            if (event.key === 'Enter') {
+                                event.preventDefault();
+                                const activeOpt = slashMenu.options[slashMenu.activeIndex];
+                                if (activeOpt) {
+                                    activeOpt.action();
+                                }
+                                return true;
+                            }
+                            if (event.key === 'Escape') {
+                                event.preventDefault();
+                                setSlashMenu(prev => ({ ...prev, visible: false }));
+                                return true;
+                            }
+                        }
+
                         if (onKeyDown) {
                             onKeyDown(event as unknown as React.KeyboardEvent<Element>);
                         }
@@ -149,7 +637,9 @@ export function CollaborativeEditor({
                 },
                 onUpdate: ({ editor: currentEd }) => {
                     if (onUpdate) {
-                        onUpdate(currentEd.getText());
+                        const rawText = currentEd.getText();
+                        const normalizedText = cleanAndNormalizeText(rawText);
+                        onUpdate(normalizedText);
                     }
                 },
                 onFocus: () => {
@@ -162,7 +652,7 @@ export function CollaborativeEditor({
 
             if (isCancelled) {
                 if (provider) provider.destroy();
-                ydoc.destroy();
+                if (ydoc) ydoc.destroy();
                 ed.destroy();
                 return;
             }
@@ -208,5 +698,36 @@ export function CollaborativeEditor({
         );
     }
 
-    return <EditorContent editor={editor} />;
+    return (
+        <div className="relative w-full">
+            <EditorContent editor={editor} />
+
+            {/* Slash Menu command palette dropdown */}
+            {slashMenu.visible && slashMenu.options.length > 0 && (
+                <div 
+                    className="absolute bg-neutral-950/95 backdrop-blur-md border border-white/10 rounded-lg shadow-2xl py-1 z-50 w-64 max-h-60 overflow-y-auto"
+                    style={{ 
+                        top: `${slashMenu.y}px`, 
+                        left: `${slashMenu.x}px` 
+                    }}
+                >
+                    {slashMenu.options.map((opt, idx) => (
+                        <button
+                            key={idx}
+                            type="button"
+                            onClick={() => opt.action()}
+                            className={cn(
+                                "w-full text-left px-3 py-1.5 text-[11px] transition-colors flex flex-col gap-0.5",
+                                idx === slashMenu.activeIndex 
+                                    ? "bg-white/10 text-white font-medium" 
+                                    : "text-white/60 hover:bg-white/5 hover:text-white"
+                            )}
+                        >
+                            <span>{opt.label}</span>
+                        </button>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
 }

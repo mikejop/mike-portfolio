@@ -386,51 +386,35 @@ export function TakeItem({ scene, take, isLastTake, sceneIndex }: TakeItemProps)
             field === 'visual' && "text-white/90 font-medium"
         );
 
-        if (activeRoomId && activeScriptId) {
-            const collectionPath = `salasRoteiro/${activeRoomId}/roteiros/${activeScriptId}/linhas_yjs/${take.id}/campos/${field}`;
-            
-            return (
-                <CollaborativeEditor
-                    collectionPath={collectionPath}
-                    value={value}
-                    disabled={!canEdit || isLockedByOther}
-                    id={fieldName}
-                    placeholder={placeholder}
-                    className={cssClasses}
-                    onUpdate={(plainText) => {
-                        const lockVal = take[`${field}Lock` as keyof Take];
-                        const isLockedByMe = !activeRoomId || (lockVal && isLockAtivo(lockVal) && (lockVal as FieldLock).userId === currentUserId);
-                        if (isLockedByMe) {
-                            handleUpdate({ [field]: plainText });
-                            if (activeRoomId) refreshLock(take.id, field);
-                        } else {
-                            // Update local store only for remote updates to keep PDF/ZIP/totalWords calculations in sync
-                            updateTakeLocalOnly(scene.id, take.id, { [field]: plainText });
-                        }
-                    }}
-                    onFocus={onFocus}
-                    onBlur={onBlur}
-                    onKeyDown={onKeyDown}
-                />
-            );
-        } else {
-            return (
-                <AutoResizeTextarea
-                    disabled={!canEdit || isLockedByOther}
-                    id={fieldName}
-                    value={value}
-                    onChange={(e) => {
-                        handleUpdate({ [field]: e.target.value });
+        const collectionPath = (activeRoomId && activeScriptId)
+            ? `salasRoteiro/${activeRoomId}/roteiros/${activeScriptId}/linhas_yjs/${take.id}/campos/${field}`
+            : undefined;
+
+        return (
+            <CollaborativeEditor
+                collectionPath={collectionPath}
+                field={field}
+                value={value}
+                disabled={!canEdit || isLockedByOther}
+                id={fieldName}
+                placeholder={placeholder}
+                className={cssClasses}
+                onUpdate={(plainText) => {
+                    const lockVal = take[`${field}Lock` as keyof Take];
+                    const isLockedByMe = !activeRoomId || (lockVal && isLockAtivo(lockVal) && (lockVal as FieldLock).userId === currentUserId);
+                    if (isLockedByMe) {
+                        handleUpdate({ [field]: plainText });
                         if (activeRoomId) refreshLock(take.id, field);
-                    }}
-                    onKeyDown={onKeyDown}
-                    onFocus={onFocus}
-                    onBlur={onBlur}
-                    placeholder={placeholder}
-                    className={cssClasses}
-                />
-            );
-        }
+                    } else {
+                        // Update local store only for remote updates to keep PDF/ZIP/totalWords calculations in sync
+                        updateTakeLocalOnly(scene.id, take.id, { [field]: plainText });
+                    }
+                }}
+                onFocus={onFocus}
+                onBlur={onBlur}
+                onKeyDown={onKeyDown}
+            />
+        );
     };
 
     return (

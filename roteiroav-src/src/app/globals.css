@@ -170,3 +170,198 @@
   0%   { background-position: -200% center; }
   100% { background-position: 200% center; }
 }
+
+/* Custom CSS Variables for Roteiro AV Slash Commands & Block Elements */
+:root {
+  --roteiro-bg-opacity: 0.08;
+}
+
+.dark {
+  --roteiro-bg-opacity: 0.06;
+}
+
+/* Roteiro Paragraph Blocks (AUDIO) */
+.roteiro-block {
+  padding-left: 10px !important;
+  margin-left: -10px !important;
+  border-radius: 0 4px 4px 0;
+  margin-top: 4px !important;
+  margin-bottom: 4px !important;
+  transition: all 0.2s ease;
+}
+
+.roteiro-block-char {
+  border-left: 3px solid #5B9BD5 !important;
+  background: rgba(91, 155, 213, var(--roteiro-bg-opacity)) !important;
+}
+
+.roteiro-block-dial,
+.roteiro-block-vo,
+.roteiro-block-off,
+.roteiro-block-loc,
+.roteiro-block-entrevista {
+  border-left: 3px solid #85B7EB !important;
+  background: rgba(133, 183, 235, var(--roteiro-bg-opacity)) !important;
+}
+
+.roteiro-block-trilha {
+  border-left: 3px solid #9B7FDD !important;
+  background: rgba(155, 127, 221, var(--roteiro-bg-opacity)) !important;
+}
+
+.roteiro-block-sfx {
+  border-left: 3px solid #34C48A !important;
+  background: rgba(52, 196, 138, var(--roteiro-bg-opacity)) !important;
+}
+
+/* Tag inline decoration */
+.roteiro-tag {
+  font-weight: bold;
+  border-radius: 4px;
+}
+
+/* Focused vs Blurred Tag Display */
+.roteiro-tag-blurred {
+  font-size: 0 !important;
+  user-select: all;
+}
+
+.roteiro-tag-blurred::before {
+  font-size: 0.875rem !important;
+}
+
+.roteiro-tag-focused {
+  opacity: 0.9;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px dashed rgba(255, 255, 255, 0.2);
+  padding: 0 2px;
+  font-size: 0.875rem !important;
+}
+
+/* Specific Label Translations when Blurred */
+/* CHAR Tag */
+.roteiro-tag-char {
+  color: #5B9BD5;
+  text-transform: uppercase;
+}
+.roteiro-tag-blurred.roteiro-tag-char::before {
+  content: attr(data-val);
+}
+
+/* Dialogue Qualifiers */
+.roteiro-tag-dial { color: #85B7EB; }
+.roteiro-tag-blurred.roteiro-tag-dial::before { content: "DIAL: "; }
+
+.roteiro-tag-vo { color: #85B7EB; }
+.roteiro-tag-blurred.roteiro-tag-vo::before { content: "VO: "; }
+
+.roteiro-tag-off { color: #85B7EB; }
+.roteiro-tag-blurred.roteiro-tag-off::before { content: "OFF: "; }
+
+.roteiro-tag-loc { color: #85B7EB; }
+.roteiro-tag-blurred.roteiro-tag-loc::before { content: "LOC: "; }
+
+.roteiro-tag-entrevista { color: #85B7EB; }
+.roteiro-tag-blurred.roteiro-tag-entrevista::before { content: "ENTREVISTA: "; }
+
+/* Trilha sonora */
+.roteiro-tag-trilha { color: #9B7FDD; }
+.roteiro-tag-blurred.roteiro-tag-trilha[data-val=""]::before {
+  content: "TRILHA: ";
+}
+.roteiro-tag-blurred.roteiro-tag-trilha:not([data-val=""])::before {
+  content: "TRILHA (" attr(data-val) "): ";
+}
+
+/* SFX */
+.roteiro-tag-sfx { color: #34C48A; }
+.roteiro-tag-blurred.roteiro-tag-sfx[data-val=""]::before {
+  content: "SFX: ";
+}
+.roteiro-tag-blurred.roteiro-tag-sfx:not([data-val=""])::before {
+  content: "SFX (" attr(data-val) "): ";
+}
+
+/* Roteiro tags (VISUAL) - Inline Badges */
+.roteiro-tag-plano,
+.roteiro-tag-angulo,
+.roteiro-tag-posicao,
+.roteiro-tag-movcam,
+.roteiro-tag-lente,
+.roteiro-tag-luz,
+.roteiro-tag-insercao {
+  display: inline-block !important;
+  padding: 1px 5px !important;
+  margin-right: 6px !important;
+  border-radius: 0 4px 4px 0 !important;
+  font-size: 0.75rem !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  vertical-align: middle !important;
+}
+
+.roteiro-tag-plano {
+  border-left: 3px solid #E59F27 !important;
+  background: rgba(229, 159, 39, var(--roteiro-bg-opacity)) !important;
+  color: #E59F27 !important;
+}
+.roteiro-tag-blurred.roteiro-tag-plano::before { content: attr(data-val); }
+
+.roteiro-tag-angulo {
+  border-left: 3px solid #E07B3A !important;
+  background: rgba(224, 123, 58, var(--roteiro-bg-opacity)) !important;
+  color: #E07B3A !important;
+}
+.roteiro-tag-blurred.roteiro-tag-angulo::before { content: attr(data-val); }
+
+.roteiro-tag-posicao {
+  border-left: 3px solid #C8A020 !important;
+  background: rgba(200, 160, 32, var(--roteiro-bg-opacity)) !important;
+  color: #C8A020 !important;
+}
+.roteiro-tag-blurred.roteiro-tag-posicao::before { content: attr(data-val); }
+
+.roteiro-tag-movcam {
+  border-left: 3px solid #1DB8A8 !important;
+  background: rgba(29, 184, 168, var(--roteiro-bg-opacity)) !important;
+  color: #1DB8A8 !important;
+}
+.roteiro-tag-blurred.roteiro-tag-movcam::before { content: attr(data-val); }
+
+.roteiro-tag-lente {
+  border-left: 3px solid #38B8F0 !important;
+  background: rgba(56, 184, 240, var(--roteiro-bg-opacity)) !important;
+  color: #38B8F0 !important;
+}
+.roteiro-tag-blurred.roteiro-tag-lente::before { content: attr(data-val); }
+
+.roteiro-tag-luz {
+  border-left: 3px solid #D4A800 !important;
+  background: rgba(212, 168, 0, var(--roteiro-bg-opacity)) !important;
+  color: #D4A800 !important;
+}
+.roteiro-tag-blurred.roteiro-tag-luz::before { content: attr(data-val); }
+
+.roteiro-tag-insercao {
+  border-left: 3px solid #C86DD4 !important;
+  background: rgba(200, 109, 212, var(--roteiro-bg-opacity)) !important;
+  color: #C86DD4 !important;
+}
+.roteiro-tag-blurred.roteiro-tag-insercao::before { content: attr(data-val); }
+
+/* Special Transition (bottom right alinhado) */
+.roteiro-tag-transicao {
+  color: #E05555 !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  font-size: 0.75rem !important;
+}
+.roteiro-tag-blurred.roteiro-tag-transicao {
+  position: absolute !important;
+  bottom: 6px !important;
+  right: 12px !important;
+  display: block !important;
+  border-left: none !important;
+  background: transparent !important;
+}
+.roteiro-tag-blurred.roteiro-tag-transicao::before { content: attr(data-val); }
