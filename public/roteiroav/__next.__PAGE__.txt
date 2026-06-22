@@ -1,9 +1,9 @@
 1:"$Sreact.fragment"
-2:I[276542,["/roteiroav/_next/static/chunks/e664242643e01224.js"],"ClientPageRoot"]
-3:I[286064,["/roteiroav/_next/static/chunks/4d3250da050331d6.js","/roteiroav/_next/static/chunks/2f69a09dafa15450.js","/roteiroav/_next/static/chunks/9d1be6120ef112eb.js","/roteiroav/_next/static/chunks/8c4b4b350a88670b.js","/roteiroav/_next/static/chunks/a5b9b440403b0fc5.js","/roteiroav/_next/static/chunks/e093dbd2fc33535b.js","/roteiroav/_next/static/chunks/1ee6bf389ae8643a.js"],"default"]
-6:I[528939,["/roteiroav/_next/static/chunks/e664242643e01224.js"],"OutletBoundary"]
+2:I[347257,["/roteiroav/_next/static/chunks/452a3479b1b93bbe.js"],"ClientPageRoot"]
+3:I[952683,["/roteiroav/_next/static/chunks/64dc07abcaa44eee.js","/roteiroav/_next/static/chunks/610c566f630bbcf9.js","/roteiroav/_next/static/chunks/fe5346aef8f79b98.js","/roteiroav/_next/static/chunks/8ed55786527e50f2.js","/roteiroav/_next/static/chunks/ead5de1328400bbe.js","/roteiroav/_next/static/chunks/9040195cbd1032f9.js","/roteiroav/_next/static/chunks/1e330c42a3a7c5a0.js","/roteiroav/_next/static/chunks/e30e2885cd9bc2da.js"],"default"]
+6:I[897367,["/roteiroav/_next/static/chunks/452a3479b1b93bbe.js"],"OutletBoundary"]
 7:"$Sreact.suspense"
-0:{"buildId":"1yqstDiw5NZscnVZ47JQf","rsc":["$","$1","c",{"children":[["$","$L2",null,{"Component":"$3","serverProvidedParams":{"searchParams":{},"params":{},"promises":["$@4","$@5"]}}],[["$","script","script-0",{"src":"/roteiroav/_next/static/chunks/1ee6bf389ae8643a.js","async":true}]],["$","$L6",null,{"children":["$","$7",null,{"name":"Next.MetadataOutlet","children":"$@8"}]}]]}],"loading":null,"isPartial":false}
+0:{"buildId":"LnwKPhnoRzrXNelWf4Uy0","rsc":["$","$1","c",{"children":[["$","$L2",null,{"Component":"$3","serverProvidedParams":{"searchParams":{},"params":{},"promises":["$@4","$@5"]}}],[["$","script","script-0",{"src":"/roteiroav/_next/static/chunks/e30e2885cd9bc2da.js","async":true}]],["$","$L6",null,{"children":["$","$7",null,{"name":"Next.MetadataOutlet","children":"$@8"}]}]]}],"loading":null,"isPartial":false}
 4:{}
 5:"$0:rsc:props:children:0:props:serverProvidedParams:params"
 8:null

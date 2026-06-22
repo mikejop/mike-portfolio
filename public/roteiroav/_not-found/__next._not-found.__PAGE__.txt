@@ -1,5 +1,9 @@
 1:"$Sreact.fragment"
-2:I[528939,["/roteiroav/_next/static/chunks/e664242643e01224.js"],"OutletBoundary"]
-3:"$Sreact.suspense"
-0:{"buildId":"1yqstDiw5NZscnVZ47JQf","rsc":["$","$1","c",{"children":[[["$","title",null,{"children":"404: This page could not be found."}],["$","div",null,{"style":{"fontFamily":"system-ui,\"Segoe UI\",Roboto,Helvetica,Arial,sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\"","height":"100vh","textAlign":"center","display":"flex","flexDirection":"column","alignItems":"center","justifyContent":"center"},"children":["$","div",null,{"children":[["$","style",null,{"dangerouslySetInnerHTML":{"__html":"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}"}}],["$","h1",null,{"className":"next-error-h1","style":{"display":"inline-block","margin":"0 20px 0 0","padding":"0 23px 0 0","fontSize":24,"fontWeight":500,"verticalAlign":"top","lineHeight":"49px"},"children":404}],["$","div",null,{"style":{"display":"inline-block"},"children":["$","h2",null,{"style":{"fontSize":14,"fontWeight":400,"lineHeight":"49px","margin":0},"children":"This page could not be found."}]}]]}]}]],null,["$","$L2",null,{"children":["$","$3",null,{"name":"Next.MetadataOutlet","children":"$@4"}]}]]}],"loading":null,"isPartial":false}
-4:null
+2:I[347257,["/roteiroav/_next/static/chunks/452a3479b1b93bbe.js"],"ClientPageRoot"]
+3:I[329306,["/roteiroav/_next/static/chunks/64dc07abcaa44eee.js","/roteiroav/_next/static/chunks/610c566f630bbcf9.js","/roteiroav/_next/static/chunks/fe5346aef8f79b98.js","/roteiroav/_next/static/chunks/8ed55786527e50f2.js","/roteiroav/_next/static/chunks/ead5de1328400bbe.js","/roteiroav/_next/static/chunks/9040195cbd1032f9.js","/roteiroav/_next/static/chunks/1e330c42a3a7c5a0.js","/roteiroav/_next/static/chunks/4d457a1b3d8b9142.js"],"default"]
+6:I[897367,["/roteiroav/_next/static/chunks/452a3479b1b93bbe.js"],"OutletBoundary"]
+7:"$Sreact.suspense"
+0:{"buildId":"LnwKPhnoRzrXNelWf4Uy0","rsc":["$","$1","c",{"children":[["$","$L2",null,{"Component":"$3","serverProvidedParams":{"searchParams":{},"params":{},"promises":["$@4","$@5"]}}],[["$","script","script-0",{"src":"/roteiroav/_next/static/chunks/4d457a1b3d8b9142.js","async":true}]],["$","$L6",null,{"children":["$","$7",null,{"name":"Next.MetadataOutlet","children":"$@8"}]}]]}],"loading":null,"isPartial":false}
+4:{}
+5:"$0:rsc:props:children:0:props:serverProvidedParams:params"
+8:null

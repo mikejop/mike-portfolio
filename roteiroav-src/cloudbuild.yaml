@@ -1,0 +1,42 @@
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  id: 'build'
+  args: [
+    'build',
+    '--build-arg', 'NEXT_PUBLIC_FIREBASE_API_KEY=${_NEXT_PUBLIC_FIREBASE_API_KEY}',
+    '--build-arg', 'NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=${_NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN}',
+    '--build-arg', 'NEXT_PUBLIC_FIREBASE_PROJECT_ID=${_NEXT_PUBLIC_FIREBASE_PROJECT_ID}',
+    '--build-arg', 'NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=${_NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET}',
+    '--build-arg', 'NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=${_NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID}',
+    '--build-arg', 'NEXT_PUBLIC_FIREBASE_APP_ID=${_NEXT_PUBLIC_FIREBASE_APP_ID}',
+    '--build-arg', 'NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=${_NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID}',
+    '-t', 'gcr.io/$PROJECT_ID/dojouitilities',
+    '.'
+  ]
+- name: 'gcr.io/cloud-builders/docker'
+  id: 'push'
+  args: ['push', 'gcr.io/$PROJECT_ID/dojouitilities']
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  id: 'deploy-us'
+  entrypoint: gcloud
+  args: [
+    'run', 'deploy', 'dojoutilities-us',
+    '--image', 'gcr.io/$PROJECT_ID/dojouitilities',
+    '--region', 'us-central1',
+    '--platform', 'managed',
+    '--min-instances', '1',
+    '--max-instances', '10',
+    '--allow-unauthenticated'
+  ]
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  id: 'deploy-br'
+  entrypoint: gcloud
+  args: [
+    'run', 'deploy', 'dojo-utilities',
+    '--image', 'gcr.io/$PROJECT_ID/dojouitilities',
+    '--region', 'southamerica-east1',
+    '--platform', 'managed',
+    '--allow-unauthenticated'
+  ]
+images:
+- 'gcr.io/$PROJECT_ID/dojouitilities'

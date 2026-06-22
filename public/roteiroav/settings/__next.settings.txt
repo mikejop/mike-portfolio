@@ -1,4 +1,4 @@
 1:"$Sreact.fragment"
-2:I[239108,["/roteiroav/_next/static/chunks/e664242643e01224.js"],"default"]
-3:I[245061,["/roteiroav/_next/static/chunks/e664242643e01224.js"],"default"]
-0:{"buildId":"1yqstDiw5NZscnVZ47JQf","rsc":["$","$1","c",{"children":[null,["$","$L2",null,{"parallelRouterKey":"children","template":["$","$L3",null,{}]}]]}],"loading":null,"isPartial":false}
+2:I[339756,["/roteiroav/_next/static/chunks/452a3479b1b93bbe.js"],"default"]
+3:I[837457,["/roteiroav/_next/static/chunks/452a3479b1b93bbe.js"],"default"]
+0:{"buildId":"LnwKPhnoRzrXNelWf4Uy0","rsc":["$","$1","c",{"children":[null,["$","$L2",null,{"parallelRouterKey":"children","template":["$","$L3",null,{}]}]]}],"loading":null,"isPartial":false}

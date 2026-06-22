@@ -199,6 +199,111 @@ service cloud.firestore {
         }
       }
     }
+
+    // =========================================================================
+    // 🛡️ REGRAS DA SALA DE ROTEIRO (EDICAO COLABORATIVA COM LOCK POR CAMPO) - NOVO
+    // =========================================================================
+    match /salasRoteiro/{roomId} {
+      allow read: if request.auth != null && request.auth.uid in get(/databases/$(database)/documents/rooms/$(roomId)).data.memberIds;
+      allow write: if request.auth != null && request.auth.uid in get(/databases/$(database)/documents/rooms/$(roomId)).data.memberIds;
+
+      // Presença de usuários na sala/roteiro
+      match /presence/{userId} {
+        allow read: if request.auth != null && request.auth.uid in get(/databases/$(database)/documents/rooms/$(roomId)).data.memberIds;
+        allow write: if request.auth != null && request.auth.uid == userId;
+      }
+
+      // Roteiros dentro da sala
+      match /roteiros/{scriptId} {
+        allow read: if request.auth != null && request.auth.uid in get(/databases/$(database)/documents/rooms/$(roomId)).data.memberIds;
+        allow create, update, delete: if request.auth != null && (
+          get(/databases/$(database)/documents/rooms/$(roomId)).data.createdBy == request.auth.uid ||
+          ('members' in get(/databases/$(database)/documents/rooms/$(roomId)).data && 
+           request.auth.uid in get(/databases/$(database)/documents/rooms/$(roomId)).data.members && 
+           get(/databases/$(database)/documents/rooms/$(roomId)).data.members[request.auth.uid].permission == 'editor')
+        );
+
+        // Subcoleção de linhas (cenas/takes)
+        match /linhas/{linhaId} {
+          allow read: if request.auth != null && request.auth.uid in get(/databases/$(database)/documents/rooms/$(roomId)).data.memberIds;
+          
+          allow write: if request.auth != null && (
+            get(/databases/$(database)/documents/rooms/$(roomId)).data.createdBy == request.auth.uid ||
+            ('members' in get(/databases/$(database)/documents/rooms/$(roomId)).data && 
+             request.auth.uid in get(/databases/$(database)/documents/rooms/$(roomId)).data.members && 
+             get(/databases/$(database)/documents/rooms/$(roomId)).data.members[request.auth.uid].permission == 'editor')
+          ) && (
+            // Permite se o documento estiver sendo criado ou removido por um editor
+            resource == null || request.resource == null ||
+            // Se a linha for uma cena, permitir qualquer escrita
+            (resource.data.type == 'scene') ||
+            // Permite se apenas os metadados de lock de áudio ou visual estiverem sendo alterados (sem alterar texto)
+            (
+              (!('audio' in request.resource.data) || !('audio' in resource.data) || request.resource.data.audio.texto == resource.data.audio.texto) &&
+              (!('visual' in request.resource.data) || !('visual' in resource.data) || request.resource.data.visual.texto == resource.data.visual.texto)
+            ) ||
+            // Permite se a alteração do texto respeita a regra de lock
+            (
+              // Regra para áudio
+              (!('audio' in request.resource.data) || !('audio' in resource.data) || request.resource.data.audio.texto == resource.data.audio.texto ||
+                (
+                  resource.data.audio.lock.userId == null ||
+                  resource.data.audio.lock.userId == request.auth.uid ||
+                  resource.data.audio.lock.lockedAt == null ||
+                  request.time.toMillis() - resource.data.audio.lock.lockedAt.toMillis() > 30000
+                )
+              ) &&
+              // Regra para visual
+              (!('visual' in request.resource.data) || !('visual' in resource.data) || request.resource.data.visual.texto == resource.data.visual.texto ||
+                (
+                  resource.data.visual.lock.userId == null ||
+                  resource.data.visual.lock.userId == request.auth.uid ||
+                  resource.data.visual.lock.lockedAt == null ||
+                  request.time.toMillis() - resource.data.visual.lock.lockedAt.toMillis() > 30000
+                )
+              )
+            )
+          );
+        }
+        
+        // Subcoleção de Yjs colaborativo
+        match /linhas_yjs/{linhaId}/campos/{field}/{document=**} {
+          allow read, write: if request.auth != null && request.auth.uid in get(/databases/$(database)/documents/rooms/$(roomId)).data.memberIds;
+        }
+
+        // Subcoleção de histórico de eventos para auditoria
+        match /historico/{eventoId} {
+          allow read: if request.auth != null && request.auth.uid in get(/databases/$(database)/documents/rooms/$(roomId)).data.memberIds;
+          allow create: if request.auth != null && request.auth.uid in get(/databases/$(database)/documents/rooms/$(roomId)).data.memberIds;
+          allow update, delete: if false;
+        }
+
+        // Subcoleção de versões
+        match /content/{versionId} {
+          allow read: if request.auth != null && request.auth.uid in get(/databases/$(database)/documents/rooms/$(roomId)).data.memberIds;
+          allow create, update, delete: if request.auth != null && (
+            get(/databases/$(database)/documents/rooms/$(roomId)).data.createdBy == request.auth.uid ||
+            ('members' in get(/databases/$(database)/documents/rooms/$(roomId)).data && 
+             request.auth.uid in get(/databases/$(database)/documents/rooms/$(roomId)).data.members && 
+             get(/databases/$(database)/documents/rooms/$(roomId)).data.members[request.auth.uid].permission == 'editor')
+          );
+        }
+      }
+    }
+
+    // =========================================================================
+    // 🛡️ REGRAS PARA ARQUIVO DE ROTEIROS (SOFT DELETE) - NOVO
+    // =========================================================================
+    match /archived_scripts/{archiveOwnerId}/{document=**} {
+      allow read, write: if request.auth != null && (
+        request.auth.uid == archiveOwnerId ||
+        (
+          'memberIds' in get(/databases/$(database)/documents/rooms/$(archiveOwnerId)).data &&
+          request.auth.uid in get(/databases/$(database)/documents/rooms/$(archiveOwnerId)).data.memberIds
+        )
+      );
+    }
   }
 }
+
 

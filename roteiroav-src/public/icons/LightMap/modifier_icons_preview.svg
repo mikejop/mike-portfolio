@@ -1,0 +1,73 @@
+<svg width="100%" viewBox="0 0 680 260" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <clipPath id="reflector-clip">
+      <path d="M300,32 L360,32 Q368,32 372,40 L392,120 Q396,128 390,130 L390,138 Q390,142 386,142 L274,142 Q270,142 270,138 L270,130 Q264,128 268,120 L288,40 Q292,32 300,32 Z"/>
+    </clipPath>
+    <clipPath id="dome-clip">
+      <path d="M430,42 Q430,32 440,32 L580,32 Q590,32 590,42 L590,105 Q590,148 510,148 Q430,148 430,105 Z"/>
+    </clipPath>
+  </defs>
+
+  <!-- === REFLECTOR === -->
+  <text x="330" y="20" text-anchor="middle" font-size="13" fill="var(--color-text-secondary)" style="fill:rgb(250, 249, 245);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:14px;font-weight:500;text-anchor:middle;dominant-baseline:auto">Reflector</text>
+
+  <!-- Outer bowl shape: trapezoid wider at top, narrower at bottom -->
+  <!-- Using a path: top-left, top-right, then converging to bottom -->
+  <path d="&#10;    M 295,38&#10;    L 365,38&#10;    Q 375,38 378,50&#10;    L 394,118&#10;    Q 397,128 388,132&#10;    L 388,142&#10;    Q 388,146 384,146&#10;    L 276,146&#10;    Q 272,146 272,142&#10;    L 272,132&#10;    Q 263,128 266,118&#10;    L 282,50&#10;    Q 285,38 295,38 Z&#10;  " fill="none" stroke="#f0a500" stroke-width="2.2" stroke-linejoin="round" style="fill:none;stroke:rgb(240, 165, 0);color:rgb(255, 255, 255);stroke-width:2.2px;stroke-linecap:butt;stroke-linejoin:round;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+
+  <!-- Bottom mount bracket -->
+  <rect x="305" y="146" width="50" height="8" rx="2" fill="none" stroke="#f0a500" stroke-width="2" style="fill:none;stroke:rgb(240, 165, 0);color:rgb(255, 255, 255);stroke-width:2px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+  <rect x="315" y="154" width="30" height="6" rx="1.5" fill="none" stroke="#f0a500" stroke-width="1.8" style="fill:none;stroke:rgb(240, 165, 0);color:rgb(255, 255, 255);stroke-width:1.8px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+
+  <!-- Top opening arc (subtle inner lip) -->
+  <line x1="295" y1="38" x2="365" y2="38" stroke="#f0a500" stroke-width="1.5" opacity="0.5" style="fill:rgb(0, 0, 0);stroke:rgb(240, 165, 0);color:rgb(255, 255, 255);stroke-width:1.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:0.5;font-family:&quot;Anthropic Sans&quot;, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+
+  <!-- Label selected -->
+  <text x="330" y="185" text-anchor="middle" fill="#f0a500" style="fill:rgb(194, 192, 182);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:12px;font-weight:400;text-anchor:middle;dominant-baseline:auto">Reflector</text>
+  <text x="330" y="200" text-anchor="middle" fill="var(--color-text-secondary)" font-size="11" style="fill:rgb(194, 192, 182);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:12px;font-weight:400;text-anchor:middle;dominant-baseline:auto">sem modificador (padrão)</text>
+
+
+  <!-- === DOME === -->
+  <text x="510" y="20" text-anchor="middle" font-size="13" fill="var(--color-text-secondary)" style="fill:rgb(250, 249, 245);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:14px;font-weight:500;text-anchor:middle;dominant-baseline:auto">Dome</text>
+
+  <!-- Dome outer shape: hemispherical bowl -->
+  <!-- Top is flat (open end), bottom curves into hemisphere -->
+  <path d="&#10;    M 432,62&#10;    L 588,62&#10;    Q 592,62 592,66&#10;    Q 592,150 510,150&#10;    Q 428,150 428,66&#10;    Q 428,62 432,62 Z&#10;  " fill="none" stroke="var(--color-text-primary)" stroke-width="2" opacity="0.8" style="fill:none;stroke:rgb(250, 249, 245);color:rgb(255, 255, 255);stroke-width:2px;stroke-linecap:butt;stroke-linejoin:miter;opacity:0.8;font-family:&quot;Anthropic Sans&quot;, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+
+  <!-- Top rim flat line -->
+  <line x1="428" y1="62" x2="592" y2="62" stroke="var(--color-text-primary)" stroke-width="2" opacity="0.8" style="fill:rgb(0, 0, 0);stroke:rgb(250, 249, 245);color:rgb(255, 255, 255);stroke-width:2px;stroke-linecap:butt;stroke-linejoin:miter;opacity:0.8;font-family:&quot;Anthropic Sans&quot;, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+
+  <!-- Internal vertical ribs (6 ribs, evenly spaced, clipped to dome shape) -->
+  <!-- Ribs are vertical lines that start at the top opening and follow down into the bowl -->
+  <!-- They curve at the bottom following the bowl contour -->
+
+  <!-- Rib 1 -->
+  <path d="M 455,62 Q 455,100 455,118 Q 455,140 470,148" fill="none" stroke="var(--color-text-primary)" stroke-width="1.2" opacity="0.6" clip-path="url(#dome-clip)" style="fill:none;stroke:rgb(250, 249, 245);color:rgb(255, 255, 255);stroke-width:1.2px;stroke-linecap:butt;stroke-linejoin:miter;opacity:0.6;font-family:&quot;Anthropic Sans&quot;, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+  <!-- Rib 2 -->
+  <path d="M 480,62 Q 480,100 480,125 Q 480,145 490,149" fill="none" stroke="var(--color-text-primary)" stroke-width="1.2" opacity="0.6" clip-path="url(#dome-clip)" style="fill:none;stroke:rgb(250, 249, 245);color:rgb(255, 255, 255);stroke-width:1.2px;stroke-linecap:butt;stroke-linejoin:miter;opacity:0.6;font-family:&quot;Anthropic Sans&quot;, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+  <!-- Rib 3 (center-left) -->
+  <path d="M 503,62 L 503,150" fill="none" stroke="var(--color-text-primary)" stroke-width="1.2" opacity="0.6" clip-path="url(#dome-clip)" style="fill:none;stroke:rgb(250, 249, 245);color:rgb(255, 255, 255);stroke-width:1.2px;stroke-linecap:butt;stroke-linejoin:miter;opacity:0.6;font-family:&quot;Anthropic Sans&quot;, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+  <!-- Rib 4 (center-right) -->
+  <path d="M 520,62 L 520,150" fill="none" stroke="var(--color-text-primary)" stroke-width="1.2" opacity="0.6" clip-path="url(#dome-clip)" style="fill:none;stroke:rgb(250, 249, 245);color:rgb(255, 255, 255);stroke-width:1.2px;stroke-linecap:butt;stroke-linejoin:miter;opacity:0.6;font-family:&quot;Anthropic Sans&quot;, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+  <!-- Rib 5 -->
+  <path d="M 542,62 Q 542,100 542,125 Q 542,145 530,149" fill="none" stroke="var(--color-text-primary)" stroke-width="1.2" opacity="0.6" clip-path="url(#dome-clip)" style="fill:none;stroke:rgb(250, 249, 245);color:rgb(255, 255, 255);stroke-width:1.2px;stroke-linecap:butt;stroke-linejoin:miter;opacity:0.6;font-family:&quot;Anthropic Sans&quot;, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+  <!-- Rib 6 -->
+  <path d="M 565,62 Q 565,100 565,118 Q 565,140 550,148" fill="none" stroke="var(--color-text-primary)" stroke-width="1.2" opacity="0.6" clip-path="url(#dome-clip)" style="fill:none;stroke:rgb(250, 249, 245);color:rgb(255, 255, 255);stroke-width:1.2px;stroke-linecap:butt;stroke-linejoin:miter;opacity:0.6;font-family:&quot;Anthropic Sans&quot;, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+
+  <!-- Bottom mount bracket (small rectangular bracket at the bottom of dome) -->
+  <rect x="488" y="150" width="44" height="8" rx="2" fill="none" stroke="var(--color-text-primary)" stroke-width="1.8" opacity="0.8" style="fill:none;stroke:rgb(250, 249, 245);color:rgb(255, 255, 255);stroke-width:1.8px;stroke-linecap:butt;stroke-linejoin:miter;opacity:0.8;font-family:&quot;Anthropic Sans&quot;, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+  <rect x="497" y="158" width="26" height="6" rx="1.5" fill="none" stroke="var(--color-text-primary)" stroke-width="1.6" opacity="0.7" style="fill:none;stroke:rgb(250, 249, 245);color:rgb(255, 255, 255);stroke-width:1.6px;stroke-linecap:butt;stroke-linejoin:miter;opacity:0.7;font-family:&quot;Anthropic Sans&quot;, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+
+  <!-- Size selector chips shown below -->
+  <rect x="430" y="185" width="44" height="22" rx="5" fill="none" stroke="var(--color-text-secondary)" stroke-width="1" opacity="0.5" style="fill:none;stroke:rgb(194, 192, 182);color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:0.5;font-family:&quot;Anthropic Sans&quot;, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+  <text x="452" y="200" text-anchor="middle" fill="var(--color-text-secondary)" style="fill:rgb(194, 192, 182);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:12px;font-weight:400;text-anchor:middle;dominant-baseline:auto">60cm</text>
+
+  <rect x="480" y="185" width="44" height="22" rx="5" fill="var(--color-text-primary)" stroke="var(--color-text-primary)" stroke-width="1" opacity="0.9" style="fill:rgb(250, 249, 245);stroke:rgb(250, 249, 245);color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:0.9;font-family:&quot;Anthropic Sans&quot;, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+  <text x="502" y="200" text-anchor="middle" fill="var(--color-background-primary)" style="fill:rgb(194, 192, 182);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:12px;font-weight:400;text-anchor:middle;dominant-baseline:auto">90cm</text>
+
+  <rect x="530" y="185" width="44" height="22" rx="5" fill="none" stroke="var(--color-text-secondary)" stroke-width="1" opacity="0.5" style="fill:none;stroke:rgb(194, 192, 182);color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:0.5;font-family:&quot;Anthropic Sans&quot;, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+  <text x="552" y="200" text-anchor="middle" fill="var(--color-text-secondary)" style="fill:rgb(194, 192, 182);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:12px;font-weight:400;text-anchor:middle;dominant-baseline:auto">120cm</text>
+
+  <text x="510" y="230" text-anchor="middle" fill="var(--color-text-secondary)" style="fill:rgb(194, 192, 182);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:12px;font-weight:400;text-anchor:middle;dominant-baseline:auto">Dome (selector de tamanho)</text>
+
+</svg>

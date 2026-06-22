@@ -1,0 +1,4034 @@
+import { NextResponse } from 'next/server';
+import { db } from '@/lib/firebase';
+import { doc, setDoc, collection } from 'firebase/firestore';
+
+const equipments = [
+  {
+    "id": "cam-act-001",
+    "name": "DJI Osmo Action 4",
+    "category": "Câmera",
+    "spec": "Câmera",
+    "priceUSD": 399
+  },
+  {
+    "id": "cam-poc-001",
+    "name": "DJI Osmo Pocket 3",
+    "category": "Câmera",
+    "spec": "Câmera",
+    "priceUSD": 519
+  },
+  {
+    "id": "cam-pan-001",
+    "name": "Panasonic Lumix G7 com 14-42mm",
+    "category": "Câmera",
+    "spec": "Câmera",
+    "priceUSD": 547
+  },
+  {
+    "id": "cam-can-001",
+    "name": "Canon EOS M50 Mark II",
+    "category": "Câmera",
+    "spec": "Câmera",
+    "priceUSD": 599
+  },
+  {
+    "id": "cam-son-001",
+    "name": "Sony ZV-1F",
+    "category": "Câmera",
+    "spec": "Câmera",
+    "priceUSD": 499
+  },
+  {
+    "id": "cam-can-002",
+    "name": "Canon EOS R50",
+    "category": "Câmera",
+    "spec": "Câmera",
+    "priceUSD": 679
+  },
+  {
+    "id": "cam-son-002",
+    "name": "Sony ZV-E10 (body)",
+    "category": "Câmera",
+    "spec": "Câmera",
+    "priceUSD": 698
+  },
+  {
+    "id": "cam-son-003",
+    "name": "Sony ZV-E10 com 16-50mm",
+    "category": "Câmera",
+    "spec": "Câmera",
+    "priceUSD": 798
+  },
+  {
+    "id": "cam-son-004",
+    "name": "Sony ZV-E10 II (body)",
+    "category": "Câmera",
+    "spec": "Câmera",
+    "priceUSD": 998
+  },
+  {
+    "id": "cam-son-005",
+    "name": "Sony A6700 (body)",
+    "category": "Câmera",
+    "spec": "Câmera",
+    "priceUSD": 1398
+  },
+  {
+    "id": "cam-can-003",
+    "name": "Canon EOS R8",
+    "category": "Câmera",
+    "spec": "Câmera",
+    "priceUSD": 1499
+  },
+  {
+    "id": "cam-son-006",
+    "name": "Sony A7 III",
+    "category": "Câmera",
+    "spec": "Câmera",
+    "priceUSD": 1698
+  },
+  {
+    "id": "cam-son-007",
+    "name": "Sony A7 IV",
+    "category": "Câmera",
+    "spec": "Câmera",
+    "priceUSD": 1998
+  },
+  {
+    "id": "cam-can-004",
+    "name": "Canon EOS R6 Mark II",
+    "category": "Câmera",
+    "spec": "Câmera",
+    "priceUSD": 1999
+  },
+  {
+    "id": "cam-pan-002",
+    "name": "Panasonic Lumix S5 II",
+    "category": "Câmera",
+    "spec": "Câmera",
+    "priceUSD": 1998
+  },
+  {
+    "id": "cam-can-005",
+    "name": "Canon EOS R5",
+    "category": "Câmera",
+    "spec": "Câmera",
+    "priceUSD": 2699
+  },
+  {
+    "id": "cam-bla-001",
+    "name": "Blackmagic Pocket Cinema Camera 4K",
+    "category": "Câmera",
+    "spec": "Câmera",
+    "priceUSD": 1295
+  },
+  {
+    "id": "cam-son-008",
+    "name": "Sony FX30",
+    "category": "Câmera",
+    "spec": "Câmera",
+    "priceUSD": 1798
+  },
+  {
+    "id": "cam-zca-001",
+    "name": "Z CAM E2-M4 (4K MFT)",
+    "category": "Câmera",
+    "spec": "Câmera",
+    "priceUSD": 1499
+  },
+  {
+    "id": "cam-bla-002",
+    "name": "Blackmagic Pocket Cinema Camera 6K Pro",
+    "category": "Câmera",
+    "spec": "Câmera",
+    "priceUSD": 2519
+  },
+  {
+    "id": "cam-zca-002",
+    "name": "Z CAM E2-S6 (6K Super 35)",
+    "category": "Câmera",
+    "spec": "Câmera",
+    "priceUSD": 2499
+  },
+  {
+    "id": "cam-zca-003",
+    "name": "Z CAM E2-F6 (6K Full-Frame)",
+    "category": "Câmera",
+    "spec": "Câmera",
+    "priceUSD": 2999
+  },
+  {
+    "id": "cam-kin-001",
+    "name": "Kinefinity MAVO mark2 6K LF",
+    "category": "Câmera",
+    "spec": "Câmera",
+    "priceUSD": 3999
+  },
+  {
+    "id": "cam-son-009",
+    "name": "Sony A7S III",
+    "category": "Câmera",
+    "spec": "Câmera",
+    "priceUSD": 3698
+  },
+  {
+    "id": "cam-son-010",
+    "name": "Sony FX3",
+    "category": "Câmera",
+    "spec": "Câmera",
+    "priceUSD": 3949
+  },
+  {
+    "id": "cam-can-006",
+    "name": "Canon EOS R5 C",
+    "category": "Câmera",
+    "spec": "Câmera",
+    "priceUSD": 3899
+  },
+  {
+    "id": "cam-can-007",
+    "name": "Canon EOS C70",
+    "category": "Câmera",
+    "spec": "Câmera",
+    "priceUSD": 4799
+  },
+  {
+    "id": "cam-zca-004",
+    "name": "Z CAM E2-F8 (8K Full-Frame)",
+    "category": "Câmera",
+    "spec": "Câmera",
+    "priceUSD": 4999
+  },
+  {
+    "id": "cam-can-008",
+    "name": "Canon EOS C80",
+    "category": "Câmera",
+    "spec": "Câmera",
+    "priceUSD": 5499
+  },
+  {
+    "id": "cam-son-011",
+    "name": "Sony FX6",
+    "category": "Câmera",
+    "spec": "Câmera",
+    "priceUSD": 5998
+  },
+  {
+    "id": "cam-kin-002",
+    "name": "Kinefinity MAVO Edge 6K",
+    "category": "Câmera",
+    "spec": "Câmera",
+    "priceUSD": 9999
+  },
+  {
+    "id": "cam-bla-003",
+    "name": "Blackmagic URSA Mini Pro 12K",
+    "category": "Câmera",
+    "spec": "Câmera",
+    "priceUSD": 9995
+  },
+  {
+    "id": "cam-kin-003",
+    "name": "Kinefinity MAVO Edge 8K",
+    "category": "Câmera",
+    "spec": "Câmera",
+    "priceUSD": 11999
+  },
+  {
+    "id": "cam-red-001",
+    "name": "RED DIGITAL CINEMA KOMODO 6K",
+    "category": "Câmera",
+    "spec": "Câmera",
+    "priceUSD": 2995
+  },
+  {
+    "id": "len-7ar-001",
+    "name": "7Artisans 25mm f/1.8 (MFT)",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 79
+  },
+  {
+    "id": "len-sir-001",
+    "name": "Sirui 24mm f/2.8 1.33x Anamorphic APS-C",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 199
+  },
+  {
+    "id": "len-sir-002",
+    "name": "Sirui 50mm f/1.8 1.33x Anamorphic APS-C",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 299
+  },
+  {
+    "id": "len-tta-001",
+    "name": "TTArtisan 35mm T2.1 Dual-Bokeh Cine",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 380
+  },
+  {
+    "id": "len-tta-002",
+    "name": "TTArtisan 50mm T2.1 Dual-Bokeh Cine",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 380
+  },
+  {
+    "id": "len-tta-003",
+    "name": "TTArtisan 85mm T2.1 Dual-Bokeh Cine",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 380
+  },
+  {
+    "id": "len-7ar-002",
+    "name": "7Artisans 35mm T2.1 Hope S35 Cine (RF)",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 369
+  },
+  {
+    "id": "len-7ar-003",
+    "name": "7Artisans 50mm T1.05 Vision Cine APS-C",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 430
+  },
+  {
+    "id": "len-7ar-004",
+    "name": "7Artisans 35mm T1.05 Vision Cine APS-C",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 499
+  },
+  {
+    "id": "len-7ar-005",
+    "name": "7Artisans 25mm T1.05 Vision Cine APS-C",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 549
+  },
+  {
+    "id": "len-mei-001",
+    "name": "Meike 25mm T2.2 MFT Cine",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 179
+  },
+  {
+    "id": "len-mei-002",
+    "name": "Meike 50mm T2.2 MFT Cine",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 179
+  },
+  {
+    "id": "len-mei-003",
+    "name": "Meike 35mm T2.2 MFT Cine",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 199
+  },
+  {
+    "id": "len-mei-004",
+    "name": "Meike 35mm T2.1 Super35 Cine (EF)",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 559
+  },
+  {
+    "id": "len-mei-005",
+    "name": "Meike 35mm T2.1 FF-Prime Cine (E-Mount)",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 798
+  },
+  {
+    "id": "len-rok-001",
+    "name": "Rokinon 35mm T1.3 Compact Cine (Sony E)",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 349
+  },
+  {
+    "id": "len-rok-002",
+    "name": "Rokinon 35mm T1.5 Cine DS (Sony E)",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 499
+  },
+  {
+    "id": "len-rok-003",
+    "name": "Rokinon 50mm T1.5 Cine DS (Sony E)",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 499
+  },
+  {
+    "id": "len-rok-004",
+    "name": "Rokinon 85mm T1.5 Cine DS (Sony E)",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 499
+  },
+  {
+    "id": "len-rok-005",
+    "name": "Rokinon 24mm T1.5 Cine DS (Sony E)",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 529
+  },
+  {
+    "id": "len-rok-006",
+    "name": "Rokinon 24/35/50/85mm T1.5 DSX Kit (Sony E)",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 1999
+  },
+  {
+    "id": "len-iri-001",
+    "name": "IRIX 45mm T1.5 Cine (Sony E)",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 399
+  },
+  {
+    "id": "len-son-001",
+    "name": "Sony FE 50mm f/1.8",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 248
+  },
+  {
+    "id": "len-son-002",
+    "name": "Sony FE 85mm f/1.8",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 598
+  },
+  {
+    "id": "len-son-003",
+    "name": "Sony FE 50mm f/1.4 GM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 1298
+  },
+  {
+    "id": "len-son-004",
+    "name": "Sony FE 28-70mm f/3.5-5.6 OSS",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 398
+  },
+  {
+    "id": "len-tam-001",
+    "name": "Tamron 28-75mm f/2.8 Di III VXD G2 (Sony E)",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 799
+  },
+  {
+    "id": "len-tam-002",
+    "name": "Tamron 17-28mm f/2.8 Di III RXD (Sony E)",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 799
+  },
+  {
+    "id": "len-sig-001",
+    "name": "Sigma 24-70mm f/2.8 DG DN II Art (Sony E)",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 1319
+  },
+  {
+    "id": "len-son-005",
+    "name": "Sony FE 24-105mm f/4 G OSS",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 1398
+  },
+  {
+    "id": "len-son-006",
+    "name": "Sony FE 24-70mm f/2.8 GM II",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 2498
+  },
+  {
+    "id": "len-zei-001",
+    "name": "ZEISS CP.3 50mm T2.1 (Sony E)",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 1195
+  },
+  {
+    "id": "len-son-007",
+    "name": "Sony FE 16-35mm f/2.8 GM II",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 2648
+  },
+  {
+    "id": "len-son-008",
+    "name": "Sony FE 16-35mm f/2.8 GM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 2198
+  },
+  {
+    "id": "len-son-009",
+    "name": "Sony FE 16-35mm f/4 ZA OSS",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 1348
+  },
+  {
+    "id": "len-son-010",
+    "name": "Sony FE 12-24mm f/2.8 GM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 2998
+  },
+  {
+    "id": "len-son-011",
+    "name": "Sony FE 12-24mm f/4 G",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 1698
+  },
+  {
+    "id": "len-son-012",
+    "name": "Sony FE PZ 16-35mm f/4 G",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 1198
+  },
+  {
+    "id": "len-son-013",
+    "name": "Sony FE 20-70mm f/4 G",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 1098
+  },
+  {
+    "id": "len-son-014",
+    "name": "Sony FE 24-70mm f/2.8 GM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 1798
+  },
+  {
+    "id": "len-son-015",
+    "name": "Sony FE 24-70mm f/4 ZA OSS",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 798
+  },
+  {
+    "id": "len-son-016",
+    "name": "Sony FE 28-60mm f/4-5.6",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 498
+  },
+  {
+    "id": "len-son-017",
+    "name": "Sony FE 70-200mm f/2.8 GM OSS II",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 3148
+  },
+  {
+    "id": "len-son-018",
+    "name": "Sony FE 70-200mm f/2.8 GM OSS",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 2398
+  },
+  {
+    "id": "len-son-019",
+    "name": "Sony FE 70-200mm f/4 G OSS",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 1498
+  },
+  {
+    "id": "len-son-020",
+    "name": "Sony FE 70-200mm f/4 Macro G OSS II",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 1698
+  },
+  {
+    "id": "len-son-021",
+    "name": "Sony FE 70-300mm f/4.5-5.6 G OSS",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 1148
+  },
+  {
+    "id": "len-son-022",
+    "name": "Sony FE 100-400mm f/4.5-5.6 GM OSS",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 2798
+  },
+  {
+    "id": "len-son-023",
+    "name": "Sony FE 200-600mm f/5.6-6.3 G OSS",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 2148
+  },
+  {
+    "id": "len-son-024",
+    "name": "Sony FE 24-240mm f/3.5-6.3 OSS",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 998
+  },
+  {
+    "id": "len-son-025",
+    "name": "Sony FE 14mm f/1.8 GM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 1598
+  },
+  {
+    "id": "len-son-026",
+    "name": "Sony FE 15mm f/1.4 G",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 1698
+  },
+  {
+    "id": "len-son-027",
+    "name": "Sony FE 20mm f/1.8 G",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 898
+  },
+  {
+    "id": "len-son-028",
+    "name": "Sony FE 21mm f/2.8",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 948
+  },
+  {
+    "id": "len-son-029",
+    "name": "Sony FE 24mm f/1.4 GM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 1598
+  },
+  {
+    "id": "len-son-030",
+    "name": "Sony FE 24mm f/2.8 G",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 798
+  },
+  {
+    "id": "len-son-031",
+    "name": "Sony FE 28mm f/2",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 448
+  },
+  {
+    "id": "len-son-032",
+    "name": "Sony FE 28mm f/2.8",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 498
+  },
+  {
+    "id": "len-son-033",
+    "name": "Sony FE 35mm f/1.4 GM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 1598
+  },
+  {
+    "id": "len-son-034",
+    "name": "Sony FE 35mm f/1.8",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 748
+  },
+  {
+    "id": "len-son-035",
+    "name": "Sony FE 35mm f/2.8 ZA",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 798
+  },
+  {
+    "id": "len-son-036",
+    "name": "Sony FE 40mm f/2.5 G",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 698
+  },
+  {
+    "id": "len-son-037",
+    "name": "Sony FE 50mm f/1.2 GM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 2298
+  },
+  {
+    "id": "len-son-038",
+    "name": "Sony FE 50mm f/2.5 G",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 698
+  },
+  {
+    "id": "len-son-039",
+    "name": "Sony FE 50mm f/2.8 Macro",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 498
+  },
+  {
+    "id": "len-son-040",
+    "name": "Sony FE 55mm f/1.8 ZA",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 798
+  },
+  {
+    "id": "len-son-041",
+    "name": "Sony FE 85mm f/1.4 GM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 1498
+  },
+  {
+    "id": "len-son-042",
+    "name": "Sony FE 85mm f/1.4 GM II",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 2048
+  },
+  {
+    "id": "len-son-043",
+    "name": "Sony FE 90mm f/2.8 Macro G OSS",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 1048
+  },
+  {
+    "id": "len-son-044",
+    "name": "Sony FE 100mm f/2.8 STF GM OSS",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 1498
+  },
+  {
+    "id": "len-son-045",
+    "name": "Sony FE 100mm f/2.8 Macro GM OSS",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 1398
+  },
+  {
+    "id": "len-son-046",
+    "name": "Sony FE 135mm f/1.8 GM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 2248
+  },
+  {
+    "id": "len-son-047",
+    "name": "Sony FE 400mm f/2.8 GM OSS",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 11998
+  },
+  {
+    "id": "len-son-048",
+    "name": "Sony FE 600mm f/4 GM OSS",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 12998
+  },
+  {
+    "id": "len-son-aps-001",
+    "name": "Sony E 10-18mm f/4 OSS",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 698
+  },
+  {
+    "id": "len-son-aps-002",
+    "name": "Sony E 10-20mm f/4 PZ G",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 748
+  },
+  {
+    "id": "len-son-aps-003",
+    "name": "Sony E PZ 16-50mm f/3.5-5.6 OSS",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 298
+  },
+  {
+    "id": "len-son-aps-004",
+    "name": "Sony E PZ 16-50mm f/3.5-5.6 OSS II",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 348
+  },
+  {
+    "id": "len-son-aps-005",
+    "name": "Sony E 16-55mm f/2.8 G",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 998
+  },
+  {
+    "id": "len-son-aps-006",
+    "name": "Sony E 18-55mm f/3.5-5.6 OSS",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 298
+  },
+  {
+    "id": "len-son-aps-007",
+    "name": "Sony E PZ 18-105mm f/4 G OSS",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 548
+  },
+  {
+    "id": "len-son-aps-008",
+    "name": "Sony E 18-135mm f/3.5-5.6 OSS",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 498
+  },
+  {
+    "id": "len-son-aps-009",
+    "name": "Sony E 55-210mm f/4.5-6.3 OSS",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 348
+  },
+  {
+    "id": "len-son-aps-010",
+    "name": "Sony E 70-350mm f/4.5-6.3 G OSS",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 998
+  },
+  {
+    "id": "len-son-aps-011",
+    "name": "Sony E 10mm f/2",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 298
+  },
+  {
+    "id": "len-son-aps-012",
+    "name": "Sony E 15mm f/1.4 G",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 598
+  },
+  {
+    "id": "len-son-aps-013",
+    "name": "Sony E 16mm f/2.8",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 248
+  },
+  {
+    "id": "len-son-aps-014",
+    "name": "Sony E 20mm f/2.8",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 348
+  },
+  {
+    "id": "len-son-aps-015",
+    "name": "Sony E 24mm f/1.8 ZA",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 998
+  },
+  {
+    "id": "len-son-aps-016",
+    "name": "Sony E 30mm f/3.5 Macro",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 298
+  },
+  {
+    "id": "len-son-aps-017",
+    "name": "Sony E 35mm f/1.8 OSS",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 448
+  },
+  {
+    "id": "len-son-aps-018",
+    "name": "Sony E 50mm f/1.8 OSS",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 298
+  },
+  {
+    "id": "len-can-rf-001",
+    "name": "Canon RF 16mm f/2.8 STM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 299
+  },
+  {
+    "id": "len-can-rf-002",
+    "name": "Canon RF 28mm f/2.8 STM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 299
+  },
+  {
+    "id": "len-can-rf-003",
+    "name": "Canon RF 35mm f/1.8 Macro IS STM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 539
+  },
+  {
+    "id": "len-can-rf-004",
+    "name": "Canon RF 50mm f/1.8 STM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 199
+  },
+  {
+    "id": "len-can-rf-005",
+    "name": "Canon RF 45mm f/1.2 STM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 469
+  },
+  {
+    "id": "len-can-rf-006",
+    "name": "Canon RF 24mm f/1.8 Macro IS STM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 599
+  },
+  {
+    "id": "len-can-rf-007",
+    "name": "Canon RF 85mm f/2 Macro IS STM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 589
+  },
+  {
+    "id": "len-can-rf-008",
+    "name": "Canon RF 24mm f/1.4 L VCM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 1549
+  },
+  {
+    "id": "len-can-rf-009",
+    "name": "Canon RF 35mm f/1.4 L VCM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 1549
+  },
+  {
+    "id": "len-can-rf-010",
+    "name": "Canon RF 50mm f/1.4 L VCM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 1499
+  },
+  {
+    "id": "len-can-rf-011",
+    "name": "Canon RF 50mm f/1.2 L USM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 2299
+  },
+  {
+    "id": "len-can-rf-012",
+    "name": "Canon RF 85mm f/1.4 L VCM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 1649
+  },
+  {
+    "id": "len-can-rf-013",
+    "name": "Canon RF 85mm f/1.2 L USM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 2799
+  },
+  {
+    "id": "len-can-rf-014",
+    "name": "Canon RF 100mm f/2.8 L Macro IS USM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 1299
+  },
+  {
+    "id": "len-can-rf-015",
+    "name": "Canon RF 135mm f/1.8 L IS USM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 2099
+  },
+  {
+    "id": "len-can-rf-016",
+    "name": "Canon RF 400mm f/2.8 L IS USM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 11999
+  },
+  {
+    "id": "len-can-rf-017",
+    "name": "Canon RF 600mm f/4 L IS USM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 12999
+  },
+  {
+    "id": "len-can-rf-z-001",
+    "name": "Canon RF 24-105mm f/4-7.1 IS STM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 399
+  },
+  {
+    "id": "len-can-rf-z-002",
+    "name": "Canon RF 24-240mm f/4-6.3 IS USM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 979
+  },
+  {
+    "id": "len-can-rf-z-003",
+    "name": "Canon RF 100-400mm f/5.6-8 IS USM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 699
+  },
+  {
+    "id": "len-can-rf-z-004",
+    "name": "Canon RF 600mm f/11 IS STM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 829
+  },
+  {
+    "id": "len-can-rf-z-005",
+    "name": "Canon RF 800mm f/11 IS STM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 1099
+  },
+  {
+    "id": "len-can-rfs-001",
+    "name": "Canon RF-S 18-45mm f/4.5-6.3 IS STM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 299
+  },
+  {
+    "id": "len-can-rfs-002",
+    "name": "Canon RF-S 18-150mm f/3.5-6.3 IS STM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 499
+  },
+  {
+    "id": "len-can-rf-l-001",
+    "name": "Canon RF 14-35mm f/4 L IS USM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 1699
+  },
+  {
+    "id": "len-can-rf-l-002",
+    "name": "Canon RF 15-30mm f/4.5-6.3 IS STM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 599
+  },
+  {
+    "id": "len-can-rf-l-003",
+    "name": "Canon RF 15-35mm f/2.8 L IS USM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 2399
+  },
+  {
+    "id": "len-can-rf-l-004",
+    "name": "Canon RF 16-28mm f/2.8 IS STM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 1249
+  },
+  {
+    "id": "len-can-rf-l-005",
+    "name": "Canon RF 24-70mm f/2.8 L IS USM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 2299
+  },
+  {
+    "id": "len-can-rf-l-006",
+    "name": "Canon RF 24-105mm f/4 L IS USM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 1399
+  },
+  {
+    "id": "len-can-rf-l-007",
+    "name": "Canon RF 24-105mm f/2.8 L IS USM Z",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 2999
+  },
+  {
+    "id": "len-can-rf-l-008",
+    "name": "Canon RF 28-70mm f/2.8 IS STM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 1199
+  },
+  {
+    "id": "len-can-rf-l-009",
+    "name": "Canon RF 28-70mm f/2 L USM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 3399
+  },
+  {
+    "id": "len-can-rf-l-010",
+    "name": "Canon RF 70-200mm f/4 L IS USM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 1599
+  },
+  {
+    "id": "len-can-rf-l-011",
+    "name": "Canon RF 70-200mm f/2.8 L IS USM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 2799
+  },
+  {
+    "id": "len-can-rf-l-012",
+    "name": "Canon RF 100-300mm f/2.8 L IS USM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 10499
+  },
+  {
+    "id": "len-can-rf-l-013",
+    "name": "Canon RF 100-500mm f/4.5-7.1 L IS USM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 2599
+  },
+  {
+    "id": "len-can-rf-l-014",
+    "name": "Canon RF 200-800mm f/6.3-9 IS USM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 2049
+  },
+  {
+    "id": "len-can-rf-l-015",
+    "name": "Canon RF 1200mm f/8 L IS USM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 6999
+  },
+  {
+    "id": "len-can-ef-001",
+    "name": "Canon EF 40mm f/2.8 STM Pancake",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 199
+  },
+  {
+    "id": "len-can-ef-002",
+    "name": "Canon EF 50mm f/1.8 STM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 169
+  },
+  {
+    "id": "len-can-ef-003",
+    "name": "Canon EF 28mm f/2.8 IS USM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 499
+  },
+  {
+    "id": "len-can-ef-004",
+    "name": "Canon EF 35mm f/2 IS USM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 549
+  },
+  {
+    "id": "len-can-ef-005",
+    "name": "Canon EF 50mm f/1.4 USM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 449
+  },
+  {
+    "id": "len-can-ef-006",
+    "name": "Canon EF 85mm f/1.8 USM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 399
+  },
+  {
+    "id": "len-can-ef-007",
+    "name": "Canon EF 20mm f/2.8 USM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 499
+  },
+  {
+    "id": "len-can-ef-008",
+    "name": "Canon EF 24mm f/1.4 L II USM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 1699
+  },
+  {
+    "id": "len-can-ef-009",
+    "name": "Canon EF 28mm f/1.8 USM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 449
+  },
+  {
+    "id": "len-can-ef-010",
+    "name": "Canon EF 35mm f/1.4 L II USM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 1899
+  },
+  {
+    "id": "len-can-ef-011",
+    "name": "Canon EF 85mm f/1.2 L II USM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 1899
+  },
+  {
+    "id": "len-can-ef-012",
+    "name": "Canon EF 85mm f/1.4 L IS USM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 1599
+  },
+  {
+    "id": "len-can-ef-013",
+    "name": "Canon EF 100mm f/2.8 L Macro IS USM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 1049
+  },
+  {
+    "id": "len-can-ef-014",
+    "name": "Canon EF 135mm f/2 L USM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 999
+  },
+  {
+    "id": "len-can-ef-015",
+    "name": "Canon EF 200mm f/2 L IS USM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 5699
+  },
+  {
+    "id": "len-can-ef-016",
+    "name": "Canon EF 300mm f/2.8 L IS II USM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 5999
+  },
+  {
+    "id": "len-can-ef-017",
+    "name": "Canon EF 400mm f/2.8 L IS III USM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 10999
+  },
+  {
+    "id": "len-can-ef-018",
+    "name": "Canon EF 400mm f/5.6 L USM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 1299
+  },
+  {
+    "id": "len-can-ef-019",
+    "name": "Canon EF 500mm f/4 L IS II USM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 8999
+  },
+  {
+    "id": "len-can-ef-020",
+    "name": "Canon EF 600mm f/4 L IS III USM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 12999
+  },
+  {
+    "id": "len-can-ef-021",
+    "name": "Canon EF 14mm f/2.8 L II USM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 2099
+  },
+  {
+    "id": "len-can-ef-zoom-001",
+    "name": "Canon EF 17-40mm f/4 L USM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 799
+  },
+  {
+    "id": "len-can-ef-zoom-002",
+    "name": "Canon EF 24-105mm f/4 L IS II USM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 1099
+  },
+  {
+    "id": "len-can-ef-zoom-003",
+    "name": "Canon EF 70-200mm f/4 L IS II USM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 1299
+  },
+  {
+    "id": "len-can-ef-zoom-004",
+    "name": "Canon EF 70-300mm f/4-5.6 IS II USM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 549
+  },
+  {
+    "id": "len-can-ef-zoom-005",
+    "name": "Canon EF 75-300mm f/4-5.6 III",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 199
+  },
+  {
+    "id": "len-can-ef-zoom-006",
+    "name": "Canon EF 16-35mm f/4 L IS USM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 1099
+  },
+  {
+    "id": "len-can-ef-zoom-007",
+    "name": "Canon EF 16-35mm f/2.8 L III USM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 2099
+  },
+  {
+    "id": "len-can-ef-zoom-008",
+    "name": "Canon EF 24-70mm f/2.8 L II USM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 1699
+  },
+  {
+    "id": "len-can-ef-zoom-009",
+    "name": "Canon EF 24-70mm f/4 L IS USM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 999
+  },
+  {
+    "id": "len-can-ef-zoom-010",
+    "name": "Canon EF 70-200mm f/2.8 L IS III USM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 2099
+  },
+  {
+    "id": "len-can-ef-zoom-011",
+    "name": "Canon EF 100-400mm f/4.5-5.6 L IS II USM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 1899
+  },
+  {
+    "id": "len-can-ef-zoom-012",
+    "name": "Canon EF 11-24mm f/4 L USM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 2799
+  },
+  {
+    "id": "len-can-ef-zoom-013",
+    "name": "Canon EF 8-15mm f/4 L Fisheye USM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 1299
+  },
+  {
+    "id": "len-can-efs-001",
+    "name": "Canon EF-S 24mm f/2.8 STM Pancake",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 169
+  },
+  {
+    "id": "len-can-efs-002",
+    "name": "Canon EF-S 18-55mm f/3.5-5.6 IS II",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 199
+  },
+  {
+    "id": "len-can-efs-003",
+    "name": "Canon EF-S 18-55mm f/4-5.6 IS STM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 249
+  },
+  {
+    "id": "len-can-efs-004",
+    "name": "Canon EF-S 55-250mm f/4-5.6 IS STM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 349
+  },
+  {
+    "id": "len-can-efs-005",
+    "name": "Canon EF-S 10-18mm f/4.5-5.6 IS STM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 299
+  },
+  {
+    "id": "len-can-efs-006",
+    "name": "Canon EF-S 60mm f/2.8 Macro USM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 449
+  },
+  {
+    "id": "len-can-efs-007",
+    "name": "Canon EF-S 17-85mm f/4-5.6 IS USM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 499
+  },
+  {
+    "id": "len-can-efs-008",
+    "name": "Canon EF-S 18-135mm f/3.5-5.6 IS STM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 499
+  },
+  {
+    "id": "len-can-efs-009",
+    "name": "Canon EF-S 18-135mm f/3.5-5.6 IS NANO USM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 599
+  },
+  {
+    "id": "len-can-efs-010",
+    "name": "Canon EF-S 10-22mm f/3.5-4.5 USM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 599
+  },
+  {
+    "id": "len-can-efs-011",
+    "name": "Canon EF-S 15-85mm f/3.5-5.6 IS USM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 599
+  },
+  {
+    "id": "len-can-efs-012",
+    "name": "Canon EF-S 18-200mm f/3.5-5.6 IS",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 699
+  },
+  {
+    "id": "len-can-efs-013",
+    "name": "Canon EF-S 17-55mm f/2.8 IS USM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 879
+  },
+  {
+    "id": "len-can-efm-001",
+    "name": "Canon EF-M 22mm f/2 STM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 199
+  },
+  {
+    "id": "len-can-efm-002",
+    "name": "Canon EF-M 15-45mm f/3.5-6.3 IS STM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 249
+  },
+  {
+    "id": "len-can-efm-003",
+    "name": "Canon EF-M 55-200mm f/4.5-6.3 IS STM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 299
+  },
+  {
+    "id": "len-can-efm-004",
+    "name": "Canon EF-M 11-22mm f/4-5.6 IS STM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 349
+  },
+  {
+    "id": "len-can-efm-005",
+    "name": "Canon EF-M 28mm f/3.5 Macro IS STM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 479
+  },
+  {
+    "id": "len-can-efm-006",
+    "name": "Canon EF-M 18-150mm f/3.5-6.3 IS STM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 499
+  },
+  {
+    "id": "len-can-efm-007",
+    "name": "Canon EF-M 32mm f/1.4 STM",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 479
+  },
+  {
+    "id": "len-mei-006",
+    "name": "Meike 5-Lens Cinema Prime Lens Kit",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 1750
+  },
+  {
+    "id": "len-dzo-001",
+    "name": "DZOFilm VESPID Prime 7-Lens Kit",
+    "category": "Lente",
+    "spec": "Lente",
+    "priceUSD": 5199
+  },
+  {
+    "id": "mon-fee-f-001",
+    "name": "FeelWorld F5 5.0\" Full HD HDMI Monitor",
+    "category": "Monitor",
+    "spec": "Monitor",
+    "priceUSD": 159
+  },
+  {
+    "id": "mon-fee-f-002",
+    "name": "FeelWorld F5 Pro V3 5.5\" 4K HDMI Touchscreen",
+    "category": "Monitor",
+    "spec": "Monitor",
+    "priceUSD": 109
+  },
+  {
+    "id": "mon-fee-f-003",
+    "name": "FeelWorld F5 Pro X 5.5\" High-Brightness HDMI Touch",
+    "category": "Monitor",
+    "spec": "Monitor",
+    "priceUSD": 159
+  },
+  {
+    "id": "mon-fee-f-004",
+    "name": "FeelWorld F6 5.7\" Full HD HDMI Monitor",
+    "category": "Monitor",
+    "spec": "Monitor",
+    "priceUSD": 119
+  },
+  {
+    "id": "mon-fee-f-005",
+    "name": "FeelWorld F6 Plus 5.5\" 4K HDMI Touchscreen",
+    "category": "Monitor",
+    "spec": "Monitor",
+    "priceUSD": 159
+  },
+  {
+    "id": "mon-fee-f-006",
+    "name": "FeelWorld F6 Plus X 5.5\" 4K HDMI Monitor",
+    "category": "Monitor",
+    "spec": "Monitor",
+    "priceUSD": 199
+  },
+  {
+    "id": "mon-fee-f-007",
+    "name": "FeelWorld F6 Plus V2 5.5\" Monitor + Battery Kit",
+    "category": "Monitor",
+    "spec": "Monitor",
+    "priceUSD": 149
+  },
+  {
+    "id": "mon-fee-f-008",
+    "name": "FeelWorld F7 Pro 7\" Touch Screen Monitor",
+    "category": "Monitor",
+    "spec": "Monitor",
+    "priceUSD": 229
+  },
+  {
+    "id": "mon-fee-f-009",
+    "name": "FeelWorld F7 Plus 7\" 4K HDMI Touchscreen",
+    "category": "Monitor",
+    "spec": "Monitor",
+    "priceUSD": 209
+  },
+  {
+    "id": "mon-fee-lut-001",
+    "name": "FeelWorld LUT5 5.5\" IPS 3000 cd/m² Monitor",
+    "category": "Monitor",
+    "spec": "Monitor",
+    "priceUSD": 179
+  },
+  {
+    "id": "mon-fee-lut-002",
+    "name": "FeelWorld LUT6 6\" 2600 cd/m² 4K HDMI Touchscreen",
+    "category": "Monitor",
+    "spec": "Monitor",
+    "priceUSD": 289
+  },
+  {
+    "id": "mon-fee-lut-003",
+    "name": "FeelWorld LUT6S 6\" 2600 cd/m² HDMI/SDI Touchscreen",
+    "category": "Monitor",
+    "spec": "Monitor",
+    "priceUSD": 389
+  },
+  {
+    "id": "mon-fee-lut-004",
+    "name": "FeelWorld LUT7 7\" 3D LUT 4K HDMI Monitor",
+    "category": "Monitor",
+    "spec": "Monitor",
+    "priceUSD": 199
+  },
+  {
+    "id": "mon-fee-lut-005",
+    "name": "FeelWorld LUT7S 7\" 3D LUT HDMI/SDI Monitor",
+    "category": "Monitor",
+    "spec": "Monitor",
+    "priceUSD": 319
+  },
+  {
+    "id": "mon-fee-lut-006",
+    "name": "FeelWorld LUT7 PRO 7\" 4K HDMI/SDI Monitor",
+    "category": "Monitor",
+    "spec": "Monitor",
+    "priceUSD": 369
+  },
+  {
+    "id": "mon-fee-lut-007",
+    "name": "FeelWorld LUT7S PRO 7\" HDMI/SDI Monitor",
+    "category": "Monitor",
+    "spec": "Monitor",
+    "priceUSD": 429
+  },
+  {
+    "id": "mon-fee-lut-008",
+    "name": "FeelWorld L7 7\" 3D LUT HDMI Metal Housing",
+    "category": "Monitor",
+    "spec": "Monitor",
+    "priceUSD": 309
+  },
+  {
+    "id": "mon-fee-lut-009",
+    "name": "FeelWorld LUT11S 10.1\" 4K Ultra-Bright Touch",
+    "category": "Monitor",
+    "spec": "Monitor",
+    "priceUSD": 599
+  },
+  {
+    "id": "mon-fee-t-001",
+    "name": "FeelWorld T7 7\" IPS 4K HDMI Monitor",
+    "category": "Monitor",
+    "spec": "Monitor",
+    "priceUSD": 139
+  },
+  {
+    "id": "mon-fee-t-002",
+    "name": "FeelWorld T7 Plus 7\" IPS 3D LUT Monitor",
+    "category": "Monitor",
+    "spec": "Monitor",
+    "priceUSD": 139
+  },
+  {
+    "id": "mon-fee-t-003",
+    "name": "FeelWorld T7 Plus V2 7\" IPS LCD Monitor",
+    "category": "Monitor",
+    "spec": "Monitor",
+    "priceUSD": 159
+  },
+  {
+    "id": "mon-fee-t-004",
+    "name": "FeelWorld T7 PRO 7\" High-Bright HDMI Monitor",
+    "category": "Monitor",
+    "spec": "Monitor",
+    "priceUSD": 159
+  },
+  {
+    "id": "mon-fee-t-005",
+    "name": "FeelWorld T7S PRO 7\" HDMI/SDI Monitor",
+    "category": "Monitor",
+    "spec": "Monitor",
+    "priceUSD": 229
+  },
+  {
+    "id": "mon-fee-t-006",
+    "name": "FeelWorld T10 10.1\" IPS 4K HDMI Touchscreen",
+    "category": "Monitor",
+    "spec": "Monitor",
+    "priceUSD": 299
+  },
+  {
+    "id": "mon-fee-p-001",
+    "name": "FeelWorld P6X 5.5\" Aluminum DSLR Monitor",
+    "category": "Monitor",
+    "spec": "Monitor",
+    "priceUSD": 239
+  },
+  {
+    "id": "mon-fee-p-002",
+    "name": "FeelWorld P6XL 5.5\" Monitor",
+    "category": "Monitor",
+    "spec": "Monitor",
+    "priceUSD": 259
+  },
+  {
+    "id": "mon-fee-p-003",
+    "name": "FeelWorld P7 7\" 2200 cd/m² HDMI Monitor",
+    "category": "Monitor",
+    "spec": "Monitor",
+    "priceUSD": 269
+  },
+  {
+    "id": "mon-fee-p-004",
+    "name": "FeelWorld P7S 7\" 2200 cd/m² HDMI/SDI Monitor",
+    "category": "Monitor",
+    "spec": "Monitor",
+    "priceUSD": 319
+  },
+  {
+    "id": "mon-fee-h-001",
+    "name": "FeelWorld H5 5.5\" 12G-SDI/HDMI 2.0 Touchscreen",
+    "category": "Monitor",
+    "spec": "Monitor",
+    "priceUSD": 399
+  },
+  {
+    "id": "mon-fee-s-001",
+    "name": "FeelWorld S55 5.5\" Lightweight HDMI Monitor",
+    "category": "Monitor",
+    "spec": "Monitor",
+    "priceUSD": 129
+  },
+  {
+    "id": "mon-fee-s-002",
+    "name": "FeelWorld S55 V3 6\" 4K HDMI Monitor",
+    "category": "Monitor",
+    "spec": "Monitor",
+    "priceUSD": 169
+  },
+  {
+    "id": "mon-fee-s-003",
+    "name": "FeelWorld S7 7\" 12G-SDI/HDMI 2.0 Monitor",
+    "category": "Monitor",
+    "spec": "Monitor",
+    "priceUSD": 599
+  },
+  {
+    "id": "mon-fee-s-004",
+    "name": "FeelWorld S10 10.1\" 12G-SDI/HDMI Touchscreen",
+    "category": "Monitor",
+    "spec": "Monitor",
+    "priceUSD": 799
+  },
+  {
+    "id": "mon-fee-sh-001",
+    "name": "FeelWorld SH7 7\" On-Camera Monitor 2200 cd/m²",
+    "category": "Monitor",
+    "spec": "Monitor",
+    "priceUSD": 319
+  },
+  {
+    "id": "mon-fee-ps-001",
+    "name": "FeelWorld PS6 5.5\" OLED Vertical Monitor",
+    "category": "Monitor",
+    "spec": "Monitor",
+    "priceUSD": 399
+  },
+  {
+    "id": "mon-fee-fw-001",
+    "name": "FeelWorld FW703 7\" IPS 3G-SDI/HDMI Monitor",
+    "category": "Monitor",
+    "spec": "Monitor",
+    "priceUSD": 219
+  },
+  {
+    "id": "mon-fee-fw-002",
+    "name": "FeelWorld FW759 7\" 4K HDMI Monitor",
+    "category": "Monitor",
+    "spec": "Monitor",
+    "priceUSD": 199
+  },
+  {
+    "id": "mon-fee-fw-003",
+    "name": "FeelWorld FW759 PRO 6\" Monitor",
+    "category": "Monitor",
+    "spec": "Monitor",
+    "priceUSD": 169
+  },
+  {
+    "id": "mon-fee-wire-001",
+    "name": "FeelWorld FT6 5.5\" Monitor com Transmissor Wireless",
+    "category": "Monitor",
+    "spec": "Monitor",
+    "priceUSD": 329
+  },
+  {
+    "id": "mon-fee-broad-001",
+    "name": "FeelWorld CMK 15.6\" Broadcast Monitor",
+    "category": "Monitor",
+    "spec": "Monitor",
+    "priceUSD": 599
+  },
+  {
+    "id": "mon-fee-broad-002",
+    "name": "FeelWorld P15-4K 15.6\" 4K HDMI/SDI Monitor",
+    "category": "Monitor",
+    "spec": "Monitor",
+    "priceUSD": 799
+  },
+  {
+    "id": "mon-fee-broad-003",
+    "name": "FeelWorld S21 21\" Broadcast Monitor",
+    "category": "Monitor",
+    "spec": "Monitor",
+    "priceUSD": 1299
+  },
+  {
+    "id": "card-sd-uhs1-001",
+    "name": "SanDisk 32GB Extreme PRO UHS-I SDXC V30",
+    "category": "Cartão de Memória",
+    "spec": "Cartão de Memória",
+    "priceUSD": 14
+  },
+  {
+    "id": "card-sd-uhs1-002",
+    "name": "SanDisk 64GB Extreme PRO UHS-I SDXC V30",
+    "category": "Cartão de Memória",
+    "spec": "Cartão de Memória",
+    "priceUSD": 24
+  },
+  {
+    "id": "card-sd-uhs1-003",
+    "name": "SanDisk 128GB Extreme PRO UHS-I SDXC V30",
+    "category": "Cartão de Memória",
+    "spec": "Cartão de Memória",
+    "priceUSD": 49
+  },
+  {
+    "id": "card-sd-uhs1-004",
+    "name": "SanDisk 256GB Extreme PRO UHS-I SDXC V30",
+    "category": "Cartão de Memória",
+    "spec": "Cartão de Memória",
+    "priceUSD": 79
+  },
+  {
+    "id": "card-sd-uhs1-005",
+    "name": "SanDisk 512GB Extreme PRO UHS-I SDXC V30",
+    "category": "Cartão de Memória",
+    "spec": "Cartão de Memória",
+    "priceUSD": 129
+  },
+  {
+    "id": "card-sd-uhs1-006",
+    "name": "SanDisk 1TB Extreme PRO UHS-I SDXC V30",
+    "category": "Cartão de Memória",
+    "spec": "Cartão de Memória",
+    "priceUSD": 199
+  },
+  {
+    "id": "card-sd-uhs1-007",
+    "name": "Lexar 64GB Professional 1066x UHS-I SDXC V30",
+    "category": "Cartão de Memória",
+    "spec": "Cartão de Memória",
+    "priceUSD": 22
+  },
+  {
+    "id": "card-sd-uhs1-008",
+    "name": "Lexar 128GB Professional 1066x UHS-I SDXC V30",
+    "category": "Cartão de Memória",
+    "spec": "Cartão de Memória",
+    "priceUSD": 39
+  },
+  {
+    "id": "card-sd-uhs1-009",
+    "name": "Lexar 256GB Professional 1066x UHS-I SDXC V30",
+    "category": "Cartão de Memória",
+    "spec": "Cartão de Memória",
+    "priceUSD": 69
+  },
+  {
+    "id": "card-sd-uhs2-v60-001",
+    "name": "SanDisk 64GB Extreme PRO UHS-II SDXC V60",
+    "category": "Cartão de Memória",
+    "spec": "Cartão de Memória",
+    "priceUSD": 49
+  },
+  {
+    "id": "card-sd-uhs2-v60-002",
+    "name": "SanDisk 128GB Extreme PRO UHS-II SDXC V60",
+    "category": "Cartão de Memória",
+    "spec": "Cartão de Memória",
+    "priceUSD": 79
+  },
+  {
+    "id": "card-sd-uhs2-v60-003",
+    "name": "SanDisk 256GB Extreme PRO UHS-II SDXC V60",
+    "category": "Cartão de Memória",
+    "spec": "Cartão de Memória",
+    "priceUSD": 149
+  },
+  {
+    "id": "card-sd-uhs2-v60-004",
+    "name": "Lexar 64GB Professional 1800x UHS-II SDXC V60",
+    "category": "Cartão de Memória",
+    "spec": "Cartão de Memória",
+    "priceUSD": 44
+  },
+  {
+    "id": "card-sd-uhs2-v60-005",
+    "name": "Lexar 128GB Professional 1800x UHS-II SDXC V60",
+    "category": "Cartão de Memória",
+    "spec": "Cartão de Memória",
+    "priceUSD": 74
+  },
+  {
+    "id": "card-sd-uhs2-v60-006",
+    "name": "Lexar 256GB Professional 1800x UHS-II SDXC V60",
+    "category": "Cartão de Memória",
+    "spec": "Cartão de Memória",
+    "priceUSD": 119
+  },
+  {
+    "id": "card-sd-uhs2-v60-007",
+    "name": "ProGrade Digital 64GB Gold UHS-II SDXC V60",
+    "category": "Cartão de Memória",
+    "spec": "Cartão de Memória",
+    "priceUSD": 49
+  },
+  {
+    "id": "card-sd-uhs2-v60-008",
+    "name": "ProGrade Digital 128GB Gold UHS-II SDXC V60",
+    "category": "Cartão de Memória",
+    "spec": "Cartão de Memória",
+    "priceUSD": 89
+  },
+  {
+    "id": "card-sd-uhs2-v60-009",
+    "name": "ProGrade Digital 256GB Gold UHS-II SDXC V60",
+    "category": "Cartão de Memória",
+    "spec": "Cartão de Memória",
+    "priceUSD": 149
+  },
+  {
+    "id": "card-sd-uhs2-v60-010",
+    "name": "Angelbird 64GB AV Pro MK2 UHS-II SDXC V60",
+    "category": "Cartão de Memória",
+    "spec": "Cartão de Memória",
+    "priceUSD": 59
+  },
+  {
+    "id": "card-sd-uhs2-v60-011",
+    "name": "Angelbird 128GB AV Pro MK2 UHS-II SDXC V60",
+    "category": "Cartão de Memória",
+    "spec": "Cartão de Memória",
+    "priceUSD": 99
+  },
+  {
+    "id": "card-sd-uhs2-v60-012",
+    "name": "Angelbird 256GB AV Pro MK2 UHS-II SDXC V60",
+    "category": "Cartão de Memória",
+    "spec": "Cartão de Memória",
+    "priceUSD": 169
+  },
+  {
+    "id": "card-sd-uhs2-v90-001",
+    "name": "SanDisk 64GB Extreme PRO UHS-II SDXC V90",
+    "category": "Cartão de Memória",
+    "spec": "Cartão de Memória",
+    "priceUSD": 89
+  },
+  {
+    "id": "card-sd-uhs2-v90-002",
+    "name": "SanDisk 128GB Extreme PRO UHS-II SDXC V90",
+    "category": "Cartão de Memória",
+    "spec": "Cartão de Memória",
+    "priceUSD": 129
+  },
+  {
+    "id": "card-sd-uhs2-v90-003",
+    "name": "SanDisk 256GB Extreme PRO UHS-II SDXC V90",
+    "category": "Cartão de Memória",
+    "spec": "Cartão de Memória",
+    "priceUSD": 249
+  },
+  {
+    "id": "card-sd-uhs2-v90-004",
+    "name": "ProGrade Digital 64GB Cobalt UHS-II SDXC V90",
+    "category": "Cartão de Memória",
+    "spec": "Cartão de Memória",
+    "priceUSD": 99
+  },
+  {
+    "id": "card-sd-uhs2-v90-005",
+    "name": "ProGrade Digital 128GB Cobalt UHS-II SDXC V90",
+    "category": "Cartão de Memória",
+    "spec": "Cartão de Memória",
+    "priceUSD": 179
+  },
+  {
+    "id": "card-sd-uhs2-v90-006",
+    "name": "ProGrade Digital 256GB Cobalt UHS-II SDXC V90",
+    "category": "Cartão de Memória",
+    "spec": "Cartão de Memória",
+    "priceUSD": 329
+  },
+  {
+    "id": "card-sd-uhs2-v90-007",
+    "name": "ProGrade Digital 128GB Iridium UHS-II SDXC V90",
+    "category": "Cartão de Memória",
+    "spec": "Cartão de Memória",
+    "priceUSD": 159
+  },
+  {
+    "id": "card-sd-uhs2-v90-008",
+    "name": "ProGrade Digital 256GB Iridium UHS-II SDXC V90",
+    "category": "Cartão de Memória",
+    "spec": "Cartão de Memória",
+    "priceUSD": 279
+  },
+  {
+    "id": "card-sd-uhs2-v90-009",
+    "name": "Angelbird 64GB AV Pro XT UHS-II SDXC V90",
+    "category": "Cartão de Memória",
+    "spec": "Cartão de Memória",
+    "priceUSD": 109
+  },
+  {
+    "id": "card-sd-uhs2-v90-010",
+    "name": "Angelbird 128GB AV Pro XT UHS-II SDXC V90",
+    "category": "Cartão de Memória",
+    "spec": "Cartão de Memória",
+    "priceUSD": 189
+  },
+  {
+    "id": "card-sd-uhs2-v90-011",
+    "name": "Angelbird 256GB AV Pro XT UHS-II SDXC V90",
+    "category": "Cartão de Memória",
+    "spec": "Cartão de Memória",
+    "priceUSD": 349
+  },
+  {
+    "id": "card-sd-uhs2-v90-012",
+    "name": "Sony 64GB SF-G Tough UHS-II SDXC V90",
+    "category": "Cartão de Memória",
+    "spec": "Cartão de Memória",
+    "priceUSD": 99
+  },
+  {
+    "id": "card-sd-uhs2-v90-013",
+    "name": "Sony 128GB SF-G Tough UHS-II SDXC V90",
+    "category": "Cartão de Memória",
+    "spec": "Cartão de Memória",
+    "priceUSD": 179
+  },
+  {
+    "id": "card-sd-uhs2-v90-014",
+    "name": "Sony 256GB SF-G Tough UHS-II SDXC V90",
+    "category": "Cartão de Memória",
+    "spec": "Cartão de Memória",
+    "priceUSD": 349
+  },
+  {
+    "id": "card-cfb-gen2-001",
+    "name": "SanDisk 128GB Extreme PRO CFexpress Type B",
+    "category": "Cartão de Memória",
+    "spec": "Cartão de Memória",
+    "priceUSD": 149
+  },
+  {
+    "id": "card-cfb-gen2-002",
+    "name": "SanDisk 256GB Extreme PRO CFexpress Type B",
+    "category": "Cartão de Memória",
+    "spec": "Cartão de Memória",
+    "priceUSD": 249
+  },
+  {
+    "id": "card-cfb-gen2-003",
+    "name": "SanDisk 512GB Extreme PRO CFexpress Type B",
+    "category": "Cartão de Memória",
+    "spec": "Cartão de Memória",
+    "priceUSD": 449
+  },
+  {
+    "id": "card-cfb-gen2-004",
+    "name": "Lexar 128GB Professional CFexpress Type B SILVER",
+    "category": "Cartão de Memória",
+    "spec": "Cartão de Memória",
+    "priceUSD": 99
+  },
+  {
+    "id": "card-cfb-gen2-005",
+    "name": "Lexar 256GB Professional CFexpress Type B SILVER",
+    "category": "Cartão de Memória",
+    "spec": "Cartão de Memória",
+    "priceUSD": 159
+  },
+  {
+    "id": "card-cfb-gen2-006",
+    "name": "Lexar 512GB Professional CFexpress Type B SILVER",
+    "category": "Cartão de Memória",
+    "spec": "Cartão de Memória",
+    "priceUSD": 279
+  },
+  {
+    "id": "card-cfb-gen2-007",
+    "name": "Lexar 128GB Professional CFexpress Type B GOLD",
+    "category": "Cartão de Memória",
+    "spec": "Cartão de Memória",
+    "priceUSD": 139
+  },
+  {
+    "id": "card-cfb-gen2-008",
+    "name": "Lexar 256GB Professional CFexpress Type B GOLD",
+    "category": "Cartão de Memória",
+    "spec": "Cartão de Memória",
+    "priceUSD": 219
+  },
+  {
+    "id": "card-cfb-gen2-009",
+    "name": "Lexar 512GB Professional CFexpress Type B GOLD",
+    "category": "Cartão de Memória",
+    "spec": "Cartão de Memória",
+    "priceUSD": 379
+  },
+  {
+    "id": "card-cfb-gen2-010",
+    "name": "Lexar 1TB Professional CFexpress Type B GOLD",
+    "category": "Cartão de Memória",
+    "spec": "Cartão de Memória",
+    "priceUSD": 649
+  },
+  {
+    "id": "card-cfb-gen2-011",
+    "name": "ProGrade Digital 128GB CFexpress Type B Cobalt",
+    "category": "Cartão de Memória",
+    "spec": "Cartão de Memória",
+    "priceUSD": 179
+  },
+  {
+    "id": "card-cfb-gen2-012",
+    "name": "ProGrade Digital 256GB CFexpress Type B Cobalt",
+    "category": "Cartão de Memória",
+    "spec": "Cartão de Memória",
+    "priceUSD": 299
+  },
+  {
+    "id": "card-cfb-gen2-013",
+    "name": "ProGrade Digital 512GB CFexpress Type B Cobalt",
+    "category": "Cartão de Memória",
+    "spec": "Cartão de Memória",
+    "priceUSD": 529
+  },
+  {
+    "id": "card-cfb-gen4-001",
+    "name": "ProGrade Digital 128GB CFexpress 4.0 Type B Iridium",
+    "category": "Cartão de Memória",
+    "spec": "Cartão de Memória",
+    "priceUSD": 199
+  },
+  {
+    "id": "card-cfb-gen4-002",
+    "name": "ProGrade Digital 256GB CFexpress 4.0 Type B Iridium",
+    "category": "Cartão de Memória",
+    "spec": "Cartão de Memória",
+    "priceUSD": 339
+  },
+  {
+    "id": "card-cfb-gen4-003",
+    "name": "ProGrade Digital 512GB CFexpress 4.0 Type B Iridium",
+    "category": "Cartão de Memória",
+    "spec": "Cartão de Memória",
+    "priceUSD": 599
+  },
+  {
+    "id": "card-cfb-gen4-004",
+    "name": "ProGrade Digital 1TB CFexpress 4.0 Type B Iridium",
+    "category": "Cartão de Memória",
+    "spec": "Cartão de Memória",
+    "priceUSD": 1099
+  },
+  {
+    "id": "card-cfb-gen4-005",
+    "name": "Angelbird 256GB AV PRO SE CFexpress v4 Type B",
+    "category": "Cartão de Memória",
+    "spec": "Cartão de Memória",
+    "priceUSD": 249
+  },
+  {
+    "id": "card-cfb-gen4-006",
+    "name": "Angelbird 512GB AV PRO SE CFexpress v4 Type B",
+    "category": "Cartão de Memória",
+    "spec": "Cartão de Memória",
+    "priceUSD": 499
+  },
+  {
+    "id": "card-cfb-gen4-007",
+    "name": "Angelbird 1TB AV PRO SE CFexpress v4 Type B",
+    "category": "Cartão de Memória",
+    "spec": "Cartão de Memória",
+    "priceUSD": 899
+  },
+  {
+    "id": "card-cfb-gen4-008",
+    "name": "Delkin Devices 128GB POWER CFexpress 4.0 Type B",
+    "category": "Cartão de Memória",
+    "spec": "Cartão de Memória",
+    "priceUSD": 199
+  },
+  {
+    "id": "card-cfb-gen4-009",
+    "name": "Delkin Devices 256GB POWER CFexpress 4.0 Type B",
+    "category": "Cartão de Memória",
+    "spec": "Cartão de Memória",
+    "priceUSD": 349
+  },
+  {
+    "id": "card-cfb-gen4-010",
+    "name": "Delkin Devices 512GB POWER CFexpress 4.0 Type B",
+    "category": "Cartão de Memória",
+    "spec": "Cartão de Memória",
+    "priceUSD": 549
+  },
+  {
+    "id": "card-cfb-gen4-011",
+    "name": "Delkin Devices 1TB POWER CFexpress 4.0 Type B",
+    "category": "Cartão de Memória",
+    "spec": "Cartão de Memória",
+    "priceUSD": 899
+  },
+  {
+    "id": "card-cfb-gen4-012",
+    "name": "Delkin Devices 2TB POWER CFexpress 4.0 Type B",
+    "category": "Cartão de Memória",
+    "spec": "Cartão de Memória",
+    "priceUSD": 1699
+  },
+  {
+    "id": "card-cfb-gen4-013",
+    "name": "Lexar 256GB Professional DIAMOND CFexpress Type B",
+    "category": "Cartão de Memória",
+    "spec": "Cartão de Memória",
+    "priceUSD": 349
+  },
+  {
+    "id": "card-cfb-gen4-014",
+    "name": "Lexar 512GB Professional DIAMOND CFexpress Type B",
+    "category": "Cartão de Memória",
+    "spec": "Cartão de Memória",
+    "priceUSD": 599
+  },
+  {
+    "id": "card-cfb-gen4-015",
+    "name": "Lexar 1TB Professional DIAMOND CFexpress Type B",
+    "category": "Cartão de Memória",
+    "spec": "Cartão de Memória",
+    "priceUSD": 999
+  },
+  {
+    "id": "card-cfb-gen4-016",
+    "name": "Sony 128GB CEB-G128 CFexpress Type B",
+    "category": "Cartão de Memória",
+    "spec": "Cartão de Memória",
+    "priceUSD": 199
+  },
+  {
+    "id": "card-cfb-gen4-017",
+    "name": "Sony 256GB CEB-G256 CFexpress Type B",
+    "category": "Cartão de Memória",
+    "spec": "Cartão de Memória",
+    "priceUSD": 349
+  },
+  {
+    "id": "card-cfb-gen4-018",
+    "name": "Sony 512GB CEB-G512 CFexpress Type B",
+    "category": "Cartão de Memória",
+    "spec": "Cartão de Memória",
+    "priceUSD": 599
+  },
+  {
+    "id": "card-cfa-san-001",
+    "name": "SanDisk 512GB Extreme PRO CFast 2.0",
+    "category": "Cartão de Memória",
+    "spec": "Cartão de Memória",
+    "priceUSD": 609
+  },
+  {
+    "id": "card-cfa-san-002",
+    "name": "SanDisk 256GB Extreme PRO CFast 2.0",
+    "category": "Cartão de Memória",
+    "spec": "Cartão de Memória",
+    "priceUSD": 369.99
+  },
+  {
+    "id": "card-cfa-red-001",
+    "name": "RED DIGITAL CINEMA 512GB RED PRO CFast 2.0",
+    "category": "Cartão de Memória",
+    "spec": "Cartão de Memória",
+    "priceUSD": 449.99
+  },
+  {
+    "id": "card-cfa-san-003",
+    "name": "SanDisk 128GB Extreme PRO CFast 2.0",
+    "category": "Cartão de Memória",
+    "spec": "Cartão de Memória",
+    "priceUSD": 219.99
+  },
+  {
+    "id": "mod-lig-001",
+    "name": "Generic China Ball Paper 24\"",
+    "category": "Modificador de Luz",
+    "spec": "Modificador de Luz",
+    "priceUSD": 15
+  },
+  {
+    "id": "mod-lig-002",
+    "name": "Aputure Light Dome Mini II Grid",
+    "category": "Modificador de Luz",
+    "spec": "Modificador de Luz",
+    "priceUSD": 25
+  },
+  {
+    "id": "mod-lig-003",
+    "name": "Godox Barndoor Bowens Mount",
+    "category": "Modificador de Luz",
+    "spec": "Modificador de Luz",
+    "priceUSD": 35
+  },
+  {
+    "id": "mod-lig-004",
+    "name": "Neewer Softbox Bowens Mount 24x24\"",
+    "category": "Modificador de Luz",
+    "spec": "Modificador de Luz",
+    "priceUSD": 35
+  },
+  {
+    "id": "mod-lig-005",
+    "name": "COLBOR BP65 Parabolic Softbox",
+    "category": "Modificador de Luz",
+    "spec": "Modificador de Luz",
+    "priceUSD": 49
+  },
+  {
+    "id": "mod-lig-006",
+    "name": "Nanlite Stripbank Softbox 55x12\"",
+    "category": "Modificador de Luz",
+    "spec": "Modificador de Luz",
+    "priceUSD": 49
+  },
+  {
+    "id": "mod-lig-007",
+    "name": "Nanlite Barndoor FM Mount",
+    "category": "Modificador de Luz",
+    "spec": "Modificador de Luz",
+    "priceUSD": 49
+  },
+  {
+    "id": "mod-lig-008",
+    "name": "Godox CS-65T Lantern Softbox 26\"",
+    "category": "Modificador de Luz",
+    "spec": "Modificador de Luz",
+    "priceUSD": 62
+  },
+  {
+    "id": "mod-lig-009",
+    "name": "Godox CS-65D Lantern Softbox 26\"",
+    "category": "Modificador de Luz",
+    "spec": "Modificador de Luz",
+    "priceUSD": 69
+  },
+  {
+    "id": "mod-lig-010",
+    "name": "Godox Umbrella Softbox 35x47\"",
+    "category": "Modificador de Luz",
+    "spec": "Modificador de Luz",
+    "priceUSD": 79
+  },
+  {
+    "id": "mod-lig-011",
+    "name": "Glow Quick Ball Lantern 35\"",
+    "category": "Modificador de Luz",
+    "spec": "Modificador de Luz",
+    "priceUSD": 79
+  },
+  {
+    "id": "mod-lig-012",
+    "name": "Aputure Light Dome SE 35\"",
+    "category": "Modificador de Luz",
+    "spec": "Modificador de Luz",
+    "priceUSD": 79
+  },
+  {
+    "id": "mod-lig-013",
+    "name": "Aputure Lantern Softbox 26\"",
+    "category": "Modificador de Luz",
+    "spec": "Modificador de Luz",
+    "priceUSD": 89
+  },
+  {
+    "id": "mod-lig-014",
+    "name": "Aputure Lantern 2.2' (26\")",
+    "category": "Modificador de Luz",
+    "spec": "Modificador de Luz",
+    "priceUSD": 89
+  },
+  {
+    "id": "mod-lig-015",
+    "name": "Aputure Light Dome Mini II",
+    "category": "Modificador de Luz",
+    "spec": "Modificador de Luz",
+    "priceUSD": 99
+  },
+  {
+    "id": "mod-lig-016",
+    "name": "Nanlite Para 90 Quick-Open Softbox",
+    "category": "Modificador de Luz",
+    "spec": "Modificador de Luz",
+    "priceUSD": 99
+  },
+  {
+    "id": "mod-lig-017",
+    "name": "Nanlite Forza Lantern 18\" FM Mount",
+    "category": "Modificador de Luz",
+    "spec": "Modificador de Luz",
+    "priceUSD": 99
+  },
+  {
+    "id": "mod-lig-018",
+    "name": "SmallRig RA-L90 Lantern Softbox 35\"",
+    "category": "Modificador de Luz",
+    "spec": "Modificador de Luz",
+    "priceUSD": 99
+  },
+  {
+    "id": "mod-lig-019",
+    "name": "Aputure EZ Box II Softbox",
+    "category": "Modificador de Luz",
+    "spec": "Modificador de Luz",
+    "priceUSD": 99
+  },
+  {
+    "id": "mod-lig-020",
+    "name": "Aputure Light Dome III 36\"",
+    "category": "Modificador de Luz",
+    "spec": "Modificador de Luz",
+    "priceUSD": 124
+  },
+  {
+    "id": "mod-lig-021",
+    "name": "Aputure Light Dome II com Grid",
+    "category": "Modificador de Luz",
+    "spec": "Modificador de Luz",
+    "priceUSD": 149
+  },
+  {
+    "id": "mod-lig-022",
+    "name": "Nanlite Rapid 120 Parabolic 47\"",
+    "category": "Modificador de Luz",
+    "spec": "Modificador de Luz",
+    "priceUSD": 149
+  },
+  {
+    "id": "mod-lig-023",
+    "name": "Aputure Light Shape Kit (4x flags)",
+    "category": "Modificador de Luz",
+    "spec": "Modificador de Luz",
+    "priceUSD": 149
+  },
+  {
+    "id": "mod-lig-024",
+    "name": "Godox S30 Fresnel LED",
+    "category": "Modificador de Luz",
+    "spec": "Modificador de Luz",
+    "priceUSD": 129
+  },
+  {
+    "id": "mod-lig-025",
+    "name": "Godox FLS8 Fresnel Lens Attachment",
+    "category": "Modificador de Luz",
+    "spec": "Modificador de Luz",
+    "priceUSD": 159
+  },
+  {
+    "id": "mod-lig-026",
+    "name": "Nanlite Fresnel Lens for Forza 300/500",
+    "category": "Modificador de Luz",
+    "spec": "Modificador de Luz",
+    "priceUSD": 159
+  },
+  {
+    "id": "mod-lig-027",
+    "name": "Nanlite Forza 60B Fresnel Kit",
+    "category": "Modificador de Luz",
+    "spec": "Modificador de Luz",
+    "priceUSD": 199
+  },
+  {
+    "id": "mod-lig-028",
+    "name": "Aputure F10 Fresnel Attachment",
+    "category": "Modificador de Luz",
+    "spec": "Modificador de Luz",
+    "priceUSD": 199
+  },
+  {
+    "id": "mod-lig-029",
+    "name": "Godox KNOWLED Fresnel Attachment",
+    "category": "Modificador de Luz",
+    "spec": "Modificador de Luz",
+    "priceUSD": 249
+  },
+  {
+    "id": "mod-lig-030",
+    "name": "Godox Lantern Softbox MG1200Bi 47\"",
+    "category": "Modificador de Luz",
+    "spec": "Modificador de Luz",
+    "priceUSD": 249
+  },
+  {
+    "id": "mod-lig-031",
+    "name": "Nanlite Lantern 120 Easy-Up 47\"",
+    "category": "Modificador de Luz",
+    "spec": "Modificador de Luz",
+    "priceUSD": 249
+  },
+  {
+    "id": "mod-lig-032",
+    "name": "Aputure Light Dome 150 60\"",
+    "category": "Modificador de Luz",
+    "spec": "Modificador de Luz",
+    "priceUSD": 269
+  },
+  {
+    "id": "mod-lig-033",
+    "name": "Chimera Pancake Lantern Small 21\"",
+    "category": "Modificador de Luz",
+    "spec": "Modificador de Luz",
+    "priceUSD": 299
+  },
+  {
+    "id": "mod-lig-034",
+    "name": "Godox Lantern Softbox 47\" MG Series",
+    "category": "Modificador de Luz",
+    "spec": "Modificador de Luz",
+    "priceUSD": 299
+  },
+  {
+    "id": "mod-lig-035",
+    "name": "Chimera Pancake Lantern com Skirt Small",
+    "category": "Modificador de Luz",
+    "spec": "Modificador de Luz",
+    "priceUSD": 350
+  },
+  {
+    "id": "mod-lig-036",
+    "name": "Chimera Pancake Lantern Medium 30\"",
+    "category": "Modificador de Luz",
+    "spec": "Modificador de Luz",
+    "priceUSD": 471
+  },
+  {
+    "id": "mod-lig-037",
+    "name": "Chimera Pancake Lantern com Skirt Medium",
+    "category": "Modificador de Luz",
+    "spec": "Modificador de Luz",
+    "priceUSD": 504
+  },
+  {
+    "id": "mod-lig-038",
+    "name": "Aputure Spotlight Mount 36°",
+    "category": "Modificador de Luz",
+    "spec": "Modificador de Luz",
+    "priceUSD": 599
+  },
+  {
+    "id": "mod-lig-039",
+    "name": "Chimera Pancake Lantern Large 48\"",
+    "category": "Modificador de Luz",
+    "spec": "Modificador de Luz",
+    "priceUSD": 784
+  },
+  {
+    "id": "mod-lig-040",
+    "name": "Chimera Pancake Lantern com Skirt Large",
+    "category": "Modificador de Luz",
+    "spec": "Modificador de Luz",
+    "priceUSD": 784
+  },
+  {
+    "id": "mod-lig-041",
+    "name": "Litepanels Studio X7 Fresnel",
+    "category": "Modificador de Luz",
+    "spec": "Modificador de Luz",
+    "priceUSD": 1999
+  },
+  {
+    "id": "mod-lig-042",
+    "name": "ARRI L5-C Plus LED Fresnel",
+    "category": "Modificador de Luz",
+    "spec": "Modificador de Luz",
+    "priceUSD": 2999
+  },
+  {
+    "id": "mod-lig-043",
+    "name": "ARRI L7-C LED Fresnel",
+    "category": "Modificador de Luz",
+    "spec": "Modificador de Luz",
+    "priceUSD": 4499
+  },
+  {
+    "id": "mic-001",
+    "name": "Boya BY-MM1",
+    "category": "Microfone",
+    "spec": "Microfone",
+    "priceUSD": 35
+  },
+  {
+    "id": "mic-002",
+    "name": "DJI Mic Mini",
+    "category": "Microfone",
+    "spec": "Microfone",
+    "priceUSD": 59
+  },
+  {
+    "id": "mic-003",
+    "name": "Rode VideoMicro",
+    "category": "Microfone",
+    "spec": "Microfone",
+    "priceUSD": 79
+  },
+  {
+    "id": "mic-004",
+    "name": "Rode VideoMic GO",
+    "category": "Microfone",
+    "spec": "Microfone",
+    "priceUSD": 99
+  },
+  {
+    "id": "mic-005",
+    "name": "Rode Wireless ME",
+    "category": "Microfone",
+    "spec": "Microfone",
+    "priceUSD": 149
+  },
+  {
+    "id": "mic-006",
+    "name": "DJI Mic 2 (1-Person)",
+    "category": "Microfone",
+    "spec": "Microfone",
+    "priceUSD": 219
+  },
+  {
+    "id": "mic-007",
+    "name": "Rode VideoMic NTG",
+    "category": "Microfone",
+    "spec": "Microfone",
+    "priceUSD": 239
+  },
+  {
+    "id": "mic-008",
+    "name": "Sennheiser MKE 600",
+    "category": "Microfone",
+    "spec": "Microfone",
+    "priceUSD": 269
+  },
+  {
+    "id": "mic-009",
+    "name": "Rode VideoMic Pro+",
+    "category": "Microfone",
+    "spec": "Microfone",
+    "priceUSD": 299
+  },
+  {
+    "id": "mic-010",
+    "name": "Rode Wireless GO II",
+    "category": "Microfone",
+    "spec": "Microfone",
+    "priceUSD": 299
+  },
+  {
+    "id": "mic-011",
+    "name": "DJI Mic 2 (2-Person)",
+    "category": "Microfone",
+    "spec": "Microfone",
+    "priceUSD": 349
+  },
+  {
+    "id": "mic-012",
+    "name": "DJI Mic 3 (2-Person)",
+    "category": "Microfone",
+    "spec": "Microfone",
+    "priceUSD": 399
+  },
+  {
+    "id": "mic-013",
+    "name": "Rode NTG5",
+    "category": "Microfone",
+    "spec": "Microfone",
+    "priceUSD": 499
+  },
+  {
+    "id": "mic-014",
+    "name": "Rode NTG3",
+    "category": "Microfone",
+    "spec": "Microfone",
+    "priceUSD": 699
+  },
+  {
+    "id": "mic-015",
+    "name": "Sennheiser EW-DP ME 4 SET",
+    "category": "Microfone",
+    "spec": "Microfone",
+    "priceUSD": 699
+  },
+  {
+    "id": "mic-016",
+    "name": "Sennheiser MKH 416",
+    "category": "Microfone",
+    "spec": "Microfone",
+    "priceUSD": 999
+  },
+  {
+    "id": "tri-low-001",
+    "name": "Amazon Basics 50\" Lightweight Tripod",
+    "category": "Tripé/Gimbal",
+    "spec": "Tripé/Gimbal",
+    "priceUSD": 23
+  },
+  {
+    "id": "tri-low-002",
+    "name": "Amazon Basics 60\" Tripod with Bag",
+    "category": "Tripé/Gimbal",
+    "spec": "Tripé/Gimbal",
+    "priceUSD": 23
+  },
+  {
+    "id": "tri-low-003",
+    "name": "Manfrotto PIXI Mini Table Top Tripod",
+    "category": "Tripé/Gimbal",
+    "spec": "Tripé/Gimbal",
+    "priceUSD": 24
+  },
+  {
+    "id": "tri-low-004",
+    "name": "Magnus VT-300 Video Tripod with Fluid Head",
+    "category": "Tripé/Gimbal",
+    "spec": "Tripé/Gimbal",
+    "priceUSD": 69
+  },
+  {
+    "id": "tri-low-005",
+    "name": "Magnus VT-350 Video Tripod with Fluid Head",
+    "category": "Tripé/Gimbal",
+    "spec": "Tripé/Gimbal",
+    "priceUSD": 85
+  },
+  {
+    "id": "tri-low-006",
+    "name": "Manfrotto PIXI Evo 2-Section Mini Tripod",
+    "category": "Tripé/Gimbal",
+    "spec": "Tripé/Gimbal",
+    "priceUSD": 49
+  },
+  {
+    "id": "tri-low-007",
+    "name": "Neewer T80 Flexible Camera Tripod",
+    "category": "Tripé/Gimbal",
+    "spec": "Tripé/Gimbal",
+    "priceUSD": 39
+  },
+  {
+    "id": "tri-low-008",
+    "name": "Neewer TS04 Selfie Stick Tripod",
+    "category": "Tripé/Gimbal",
+    "spec": "Tripé/Gimbal",
+    "priceUSD": 49
+  },
+  {
+    "id": "tri-low-009",
+    "name": "Neewer 77\" 2-in-1 Tripod/Monopod",
+    "category": "Tripé/Gimbal",
+    "spec": "Tripé/Gimbal",
+    "priceUSD": 70
+  },
+  {
+    "id": "tri-gim-001",
+    "name": "Magnus VT-3000 Tripod System with Fluid Head",
+    "category": "Tripé/Gimbal",
+    "spec": "Tripé/Gimbal",
+    "priceUSD": 120
+  },
+  {
+    "id": "tri-gim-002",
+    "name": "Magnus VT-4000 Tripod System with Fluid Head",
+    "category": "Tripé/Gimbal",
+    "spec": "Tripé/Gimbal",
+    "priceUSD": 159
+  },
+  {
+    "id": "tri-gim-003",
+    "name": "Manfrotto 190go! Aluminum",
+    "category": "Tripé/Gimbal",
+    "spec": "Tripé/Gimbal",
+    "priceUSD": 149
+  },
+  {
+    "id": "tri-gim-004",
+    "name": "Davis & Sanford ProVista 7518B",
+    "category": "Tripé/Gimbal",
+    "spec": "Tripé/Gimbal",
+    "priceUSD": 179
+  },
+  {
+    "id": "tri-gim-005",
+    "name": "Manfrotto MT190XPRO4",
+    "category": "Tripé/Gimbal",
+    "spec": "Tripé/Gimbal",
+    "priceUSD": 179
+  },
+  {
+    "id": "tri-gim-006",
+    "name": "Manfrotto Befree Advanced Carbon",
+    "category": "Tripé/Gimbal",
+    "spec": "Tripé/Gimbal",
+    "priceUSD": 249
+  },
+  {
+    "id": "tri-gim-007",
+    "name": "Manfrotto ONE Hybrid",
+    "category": "Tripé/Gimbal",
+    "spec": "Tripé/Gimbal",
+    "priceUSD": 349
+  },
+  {
+    "id": "tri-gim-008",
+    "name": "Sachtler Ace M",
+    "category": "Tripé/Gimbal",
+    "spec": "Tripé/Gimbal",
+    "priceUSD": 399
+  },
+  {
+    "id": "tri-gim-009",
+    "name": "Feiyu SCORP-C",
+    "category": "Tripé/Gimbal",
+    "spec": "Tripé/Gimbal",
+    "priceUSD": 199
+  },
+  {
+    "id": "tri-gim-010",
+    "name": "DJI RS 3 Mini",
+    "category": "Tripé/Gimbal",
+    "spec": "Tripé/Gimbal",
+    "priceUSD": 237
+  },
+  {
+    "id": "tri-gim-011",
+    "name": "Zhiyun Weebill-S",
+    "category": "Tripé/Gimbal",
+    "spec": "Tripé/Gimbal",
+    "priceUSD": 279
+  },
+  {
+    "id": "tri-gim-012",
+    "name": "Zhiyun Crane-M3S",
+    "category": "Tripé/Gimbal",
+    "spec": "Tripé/Gimbal",
+    "priceUSD": 299
+  },
+  {
+    "id": "tri-gim-013",
+    "name": "DJI RS 4 Mini",
+    "category": "Tripé/Gimbal",
+    "spec": "Tripé/Gimbal",
+    "priceUSD": 369
+  },
+  {
+    "id": "tri-gim-014",
+    "name": "Zhiyun Crane 4",
+    "category": "Tripé/Gimbal",
+    "spec": "Tripé/Gimbal",
+    "priceUSD": 549
+  },
+  {
+    "id": "tri-gim-015",
+    "name": "DJI RS 4",
+    "category": "Tripé/Gimbal",
+    "spec": "Tripé/Gimbal",
+    "priceUSD": 549
+  },
+  {
+    "id": "tri-gim-016",
+    "name": "DJI RS 4 Combo",
+    "category": "Tripé/Gimbal",
+    "spec": "Tripé/Gimbal",
+    "priceUSD": 719
+  },
+  {
+    "id": "tri-gim-017",
+    "name": "DJI RS 3 Pro",
+    "category": "Tripé/Gimbal",
+    "spec": "Tripé/Gimbal",
+    "priceUSD": 729
+  },
+  {
+    "id": "tri-gim-018",
+    "name": "Zhiyun Crane 3S",
+    "category": "Tripé/Gimbal",
+    "spec": "Tripé/Gimbal",
+    "priceUSD": 749
+  },
+  {
+    "id": "tri-gim-019",
+    "name": "DJI OM SE",
+    "category": "Tripé/Gimbal",
+    "spec": "Tripé/Gimbal",
+    "priceUSD": 99
+  },
+  {
+    "id": "tri-gim-020",
+    "name": "Zhiyun Smooth Q4",
+    "category": "Tripé/Gimbal",
+    "spec": "Tripé/Gimbal",
+    "priceUSD": 119
+  },
+  {
+    "id": "tri-gim-021",
+    "name": "DJI OM 5",
+    "category": "Tripé/Gimbal",
+    "spec": "Tripé/Gimbal",
+    "priceUSD": 129
+  },
+  {
+    "id": "tri-gim-022",
+    "name": "Zhiyun Smooth 5S",
+    "category": "Tripé/Gimbal",
+    "spec": "Tripé/Gimbal",
+    "priceUSD": 159
+  },
+  {
+    "id": "dro-001",
+    "name": "DJI Mini 4K",
+    "category": "Drone",
+    "spec": "Drone",
+    "priceUSD": 299
+  },
+  {
+    "id": "dro-002",
+    "name": "DJI Mini SE",
+    "category": "Drone",
+    "spec": "Drone",
+    "priceUSD": 369
+  },
+  {
+    "id": "dro-003",
+    "name": "DJI Mini 2 SE",
+    "category": "Drone",
+    "spec": "Drone",
+    "priceUSD": 449
+  },
+  {
+    "id": "dro-004",
+    "name": "DJI Mini 4 Pro",
+    "category": "Drone",
+    "spec": "Drone",
+    "priceUSD": 759
+  },
+  {
+    "id": "dro-005",
+    "name": "DJI Mini 4 Pro Fly More Combo",
+    "category": "Drone",
+    "spec": "Drone",
+    "priceUSD": 999
+  },
+  {
+    "id": "dro-006",
+    "name": "DJI Avata 2",
+    "category": "Drone",
+    "spec": "Drone",
+    "priceUSD": 999
+  },
+  {
+    "id": "dro-007",
+    "name": "DJI Air 3S",
+    "category": "Drone",
+    "spec": "Drone",
+    "priceUSD": 1099
+  },
+  {
+    "id": "dro-008",
+    "name": "DJI Air 3 Fly More Combo",
+    "category": "Drone",
+    "spec": "Drone",
+    "priceUSD": 1399
+  },
+  {
+    "id": "dro-009",
+    "name": "DJI Mavic 3 Classic",
+    "category": "Drone",
+    "spec": "Drone",
+    "priceUSD": 1599
+  },
+  {
+    "id": "dro-010",
+    "name": "DJI Mavic 3 Pro",
+    "category": "Drone",
+    "spec": "Drone",
+    "priceUSD": 2199
+  },
+  {
+    "id": "dro-011",
+    "name": "DJI Mavic 4 Pro",
+    "category": "Drone",
+    "spec": "Drone",
+    "priceUSD": 2929
+  },
+  {
+    "id": "acc-001",
+    "name": "SmallRig Cage Sony ZV-E10",
+    "category": "Acessório",
+    "spec": "Acessório",
+    "priceUSD": 39
+  },
+  {
+    "id": "acc-002",
+    "name": "SmallRig 15mm Rod System",
+    "category": "Acessório",
+    "spec": "Acessório",
+    "priceUSD": 49
+  },
+  {
+    "id": "acc-003",
+    "name": "SmallRig Cage Sony A7 IV/A7S III",
+    "category": "Acessório",
+    "spec": "Acessório",
+    "priceUSD": 59
+  },
+  {
+    "id": "acc-004",
+    "name": "SmallRig Cage Canon R5/R6",
+    "category": "Acessório",
+    "spec": "Acessório",
+    "priceUSD": 69
+  },
+  {
+    "id": "acc-005",
+    "name": "SmallRig Cage BMPCC 4K/6K",
+    "category": "Acessório",
+    "spec": "Acessório",
+    "priceUSD": 79
+  },
+  {
+    "id": "acc-006",
+    "name": "SmallRig Follow Focus",
+    "category": "Acessório",
+    "spec": "Acessório",
+    "priceUSD": 89
+  },
+  {
+    "id": "acc-007",
+    "name": "Canon EF-EOS R Mount Adapter",
+    "category": "Acessório",
+    "spec": "Acessório",
+    "priceUSD": 199
+  },
+  {
+    "id": "acc-008",
+    "name": "Tilta Nucleus-N Follow Focus Wireless",
+    "category": "Acessório",
+    "spec": "Acessório",
+    "priceUSD": 199
+  },
+  {
+    "id": "acc-009",
+    "name": "Atomos Shinobi 5\"",
+    "category": "Acessório",
+    "spec": "Acessório",
+    "priceUSD": 199
+  },
+  {
+    "id": "acc-010",
+    "name": "Atomos Ninja Phone",
+    "category": "Acessório",
+    "spec": "Acessório",
+    "priceUSD": 199
+  },
+  {
+    "id": "acc-011",
+    "name": "Atomos Ninja V 5\" 4K",
+    "category": "Acessório",
+    "spec": "Acessório",
+    "priceUSD": 599
+  },
+  {
+    "id": "acc-012",
+    "name": "Kinefinity MAVO Edge to Sony E Adapter",
+    "category": "Acessório",
+    "spec": "Acessório",
+    "priceUSD": 599
+  },
+  {
+    "id": "acc-013",
+    "name": "Atomos Ninja V+ 5\" 8K",
+    "category": "Acessório",
+    "spec": "Acessório",
+    "priceUSD": 799
+  },
+  {
+    "id": "acc-014",
+    "name": "Metabones EF to E Speed Booster ULTRA II",
+    "category": "Acessório",
+    "spec": "Acessório",
+    "priceUSD": 649
+  },
+  {
+    "id": "acc-015",
+    "name": "Wooden Camera Cage BMPCC 6K Pro",
+    "category": "Acessório",
+    "spec": "Acessório",
+    "priceUSD": 249
+  },
+  {
+    "id": "sto-ssd-ert-001",
+    "name": "Samsung 500GB T7 Portable SSD",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 109
+  },
+  {
+    "id": "sto-ssd-ert-002",
+    "name": "Samsung 1TB T7 Portable SSD",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 149
+  },
+  {
+    "id": "sto-ssd-ert-003",
+    "name": "Samsung 1TB T7 Shield Portable SSD",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 159
+  },
+  {
+    "id": "sto-ssd-ert-004",
+    "name": "SanDisk 500GB Extreme Portable SSD V2",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 99
+  },
+  {
+    "id": "sto-ssd-ert-005",
+    "name": "SanDisk 1TB Extreme Portable SSD V2",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 149
+  },
+  {
+    "id": "sto-ssd-ert-006",
+    "name": "SanDisk 1TB Extreme PRO Portable SSD V2",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 179
+  },
+  {
+    "id": "sto-ssd-ert-007",
+    "name": "Samsung 2TB T7 Portable SSD",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 249
+  },
+  {
+    "id": "sto-ssd-ert-008",
+    "name": "Samsung 2TB T7 Shield Portable SSD",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 279
+  },
+  {
+    "id": "sto-ssd-ert-009",
+    "name": "SanDisk 2TB Extreme Portable SSD V2",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 219
+  },
+  {
+    "id": "sto-ssd-ert-010",
+    "name": "SanDisk 2TB Extreme PRO Portable SSD V2",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 279
+  },
+  {
+    "id": "sto-ssd-hsp-001",
+    "name": "Samsung 1TB T9 Portable SSD",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 199
+  },
+  {
+    "id": "sto-ssd-hsp-002",
+    "name": "Samsung 2TB T9 Portable SSD",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 349
+  },
+  {
+    "id": "sto-ssd-hsp-003",
+    "name": "Samsung 4TB T9 Portable SSD",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 649
+  },
+  {
+    "id": "sto-ssd-hsp-004",
+    "name": "Samsung 4TB T7 Portable SSD",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 549
+  },
+  {
+    "id": "sto-ssd-hsp-005",
+    "name": "Samsung 4TB T7 Shield Portable SSD",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 599
+  },
+  {
+    "id": "sto-ssd-hsp-006",
+    "name": "SanDisk 4TB Extreme PRO Portable SSD USB4",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 599
+  },
+  {
+    "id": "sto-ssd-tbt-001",
+    "name": "OWC 1TB Envoy Pro FX Thunderbolt/USB-C SSD",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 199
+  },
+  {
+    "id": "sto-ssd-tbt-002",
+    "name": "OWC 2TB Envoy Pro FX Thunderbolt/USB-C SSD",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 299
+  },
+  {
+    "id": "sto-ssd-tbt-003",
+    "name": "OWC 4TB Envoy Pro FX Thunderbolt/USB-C SSD",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 499
+  },
+  {
+    "id": "sto-ssd-tbt-004",
+    "name": "OWC 1TB Envoy Pro EX Thunderbolt 3 SSD",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 189
+  },
+  {
+    "id": "sto-ssd-tbt-005",
+    "name": "OWC 2TB Envoy Pro EX Thunderbolt 3 SSD",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 349
+  },
+  {
+    "id": "sto-ssd-tbt-006",
+    "name": "OWC 4TB Envoy Ultra Thunderbolt 5 SSD",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 699
+  },
+  {
+    "id": "sto-ssd-tbt-007",
+    "name": "OWC 8TB Envoy Ultra Thunderbolt 5 SSD",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 1299
+  },
+  {
+    "id": "sto-ssd-tbt-008",
+    "name": "LaCie 1TB Rugged SSD Pro Thunderbolt 3",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 249
+  },
+  {
+    "id": "sto-ssd-tbt-009",
+    "name": "LaCie 2TB Rugged SSD Pro Thunderbolt 3",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 449
+  },
+  {
+    "id": "sto-ssd-tbt-010",
+    "name": "LaCie 4TB Rugged SSD Pro Thunderbolt 3",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 799
+  },
+  {
+    "id": "sto-ssd-tbt-011",
+    "name": "LaCie 2TB Rugged SSD Pro5 Thunderbolt 5",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 499
+  },
+  {
+    "id": "sto-ssd-tbt-012",
+    "name": "LaCie 4TB Rugged SSD Pro5 Thunderbolt 5",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 899
+  },
+  {
+    "id": "sto-ssd-tbt-013",
+    "name": "LaCie 1TB Rugged Mini USB-C HDD",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 99
+  },
+  {
+    "id": "sto-ssd-tbt-014",
+    "name": "LaCie 2TB Rugged Mini USB-C HDD",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 129
+  },
+  {
+    "id": "sto-ssd-tbt-015",
+    "name": "LaCie 4TB Rugged Mini USB-C SSD",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 449
+  },
+  {
+    "id": "sto-ssd-p4-001",
+    "name": "Samsung 1TB 990 PRO NVMe M.2",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 149
+  },
+  {
+    "id": "sto-ssd-p4-002",
+    "name": "Samsung 2TB 990 PRO NVMe M.2",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 249
+  },
+  {
+    "id": "sto-ssd-p4-003",
+    "name": "Samsung 4TB 990 PRO NVMe M.2",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 449
+  },
+  {
+    "id": "sto-ssd-p4-004",
+    "name": "Samsung 1TB 990 PRO NVMe M.2 c/ Heatsink",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 179
+  },
+  {
+    "id": "sto-ssd-p4-005",
+    "name": "Samsung 2TB 990 PRO NVMe M.2 c/ Heatsink",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 299
+  },
+  {
+    "id": "sto-ssd-p4-006",
+    "name": "WD 1TB Black SN850X NVMe M.2",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 139
+  },
+  {
+    "id": "sto-ssd-p4-007",
+    "name": "WD 2TB Black SN850X NVMe M.2",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 229
+  },
+  {
+    "id": "sto-ssd-p4-008",
+    "name": "WD 4TB Black SN850X NVMe M.2",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 449
+  },
+  {
+    "id": "sto-ssd-p4-009",
+    "name": "WD 1TB Black SN850X NVMe M.2 c/ Heatsink",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 179
+  },
+  {
+    "id": "sto-ssd-p4-010",
+    "name": "WD 2TB Black SN850X NVMe M.2 c/ Heatsink",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 289
+  },
+  {
+    "id": "sto-ssd-p4-011",
+    "name": "WD 4TB Black SN850X NVMe M.2 c/ Heatsink",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 499
+  },
+  {
+    "id": "sto-ssd-p4-012",
+    "name": "Samsung 1TB 980 PRO NVMe M.2",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 119
+  },
+  {
+    "id": "sto-ssd-p4-013",
+    "name": "Samsung 2TB 980 PRO NVMe M.2",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 199
+  },
+  {
+    "id": "sto-ssd-p4-014",
+    "name": "WD 1TB Black SN770 NVMe M.2",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 89
+  },
+  {
+    "id": "sto-ssd-p4-015",
+    "name": "WD 2TB Black SN770 NVMe M.2",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 149
+  },
+  {
+    "id": "sto-ssd-p5-001",
+    "name": "Crucial 1TB T700 PCIe 5.0 NVMe M.2",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 199
+  },
+  {
+    "id": "sto-ssd-p5-002",
+    "name": "Crucial 2TB T700 PCIe 5.0 NVMe M.2",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 349
+  },
+  {
+    "id": "sto-ssd-p5-003",
+    "name": "Crucial 4TB T700 PCIe 5.0 NVMe M.2",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 599
+  },
+  {
+    "id": "sto-ssd-p5-004",
+    "name": "Crucial 1TB T700 PCIe 5.0 c/ Heatsink",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 229
+  },
+  {
+    "id": "sto-ssd-p5-005",
+    "name": "Crucial 2TB T700 PCIe 5.0 c/ Heatsink",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 399
+  },
+  {
+    "id": "sto-ssd-p5-006",
+    "name": "Crucial 1TB T705 PCIe 5.0 NVMe M.2",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 249
+  },
+  {
+    "id": "sto-ssd-p5-007",
+    "name": "Crucial 2TB T705 PCIe 5.0 NVMe M.2",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 399
+  },
+  {
+    "id": "sto-ssd-p5-008",
+    "name": "Crucial 4TB T705 PCIe 5.0 NVMe M.2",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 699
+  },
+  {
+    "id": "sto-ssd-p5-009",
+    "name": "WD 2TB Black SN850X NVMe M.2 c/ Heatsink",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 289
+  },
+  {
+    "id": "sto-hdd-siw-001",
+    "name": "Seagate 4TB IronWolf NAS 5900rpm",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 89
+  },
+  {
+    "id": "sto-hdd-siw-002",
+    "name": "Seagate 6TB IronWolf NAS 7200rpm",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 129
+  },
+  {
+    "id": "sto-hdd-siw-003",
+    "name": "Seagate 8TB IronWolf NAS 7200rpm",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 169
+  },
+  {
+    "id": "sto-hdd-siw-004",
+    "name": "Seagate 10TB IronWolf NAS 7200rpm",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 199
+  },
+  {
+    "id": "sto-hdd-siw-005",
+    "name": "Seagate 12TB IronWolf NAS 7200rpm",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 229
+  },
+  {
+    "id": "sto-hdd-siw-006",
+    "name": "Seagate 16TB IronWolf NAS 7200rpm",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 299
+  },
+  {
+    "id": "sto-hdd-siw-007",
+    "name": "Seagate 18TB IronWolf Pro NAS 7200rpm",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 349
+  },
+  {
+    "id": "sto-hdd-siw-008",
+    "name": "Seagate 20TB IronWolf Pro NAS 7200rpm",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 399
+  },
+  {
+    "id": "sto-hdd-siw-009",
+    "name": "Seagate 22TB IronWolf Pro NAS 7200rpm",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 449
+  },
+  {
+    "id": "sto-hdd-siw-010",
+    "name": "Seagate 24TB IronWolf Pro NAS 7200rpm",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 549
+  },
+  {
+    "id": "sto-hdd-wrd-001",
+    "name": "WD 4TB Red Plus NAS 5400rpm",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 89
+  },
+  {
+    "id": "sto-hdd-wrd-002",
+    "name": "WD 6TB Red Plus NAS 5400rpm",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 129
+  },
+  {
+    "id": "sto-hdd-wrd-003",
+    "name": "WD 8TB Red Plus NAS 5640rpm",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 169
+  },
+  {
+    "id": "sto-hdd-wrd-004",
+    "name": "WD 10TB Red Plus NAS 5640rpm",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 199
+  },
+  {
+    "id": "sto-hdd-wrd-005",
+    "name": "WD 12TB Red Plus NAS 5640rpm",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 249
+  },
+  {
+    "id": "sto-hdd-wrd-006",
+    "name": "WD 10TB Red Pro NAS 7200rpm",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 249
+  },
+  {
+    "id": "sto-hdd-wrd-007",
+    "name": "WD 12TB Red Pro NAS 7200rpm",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 299
+  },
+  {
+    "id": "sto-hdd-wrd-008",
+    "name": "WD 14TB Red Pro NAS 7200rpm",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 329
+  },
+  {
+    "id": "sto-hdd-wrd-009",
+    "name": "WD 16TB Red Pro NAS 7200rpm",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 349
+  },
+  {
+    "id": "sto-hdd-wrd-010",
+    "name": "WD 18TB Red Pro NAS 7200rpm",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 399
+  },
+  {
+    "id": "sto-hdd-wrd-011",
+    "name": "WD 20TB Red Pro NAS 7200rpm",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 449
+  },
+  {
+    "id": "sto-hdd-wrd-012",
+    "name": "WD 22TB Red Pro NAS 7200rpm",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 499
+  },
+  {
+    "id": "sto-hdd-sex-001",
+    "name": "Seagate 12TB Exos X20 Enterprise 7200rpm",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 249
+  },
+  {
+    "id": "sto-hdd-sex-002",
+    "name": "Seagate 16TB Exos X20 Enterprise 7200rpm",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 299
+  },
+  {
+    "id": "sto-hdd-sex-003",
+    "name": "Seagate 18TB Exos X20 Enterprise 7200rpm",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 349
+  },
+  {
+    "id": "sto-hdd-sex-004",
+    "name": "Seagate 20TB Exos X20 Enterprise 7200rpm",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 399
+  },
+  {
+    "id": "sto-hdd-sex-005",
+    "name": "Seagate 20TB Exos X24 Enterprise 7200rpm",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 449
+  },
+  {
+    "id": "sto-hdd-sex-006",
+    "name": "Seagate 22TB Exos X24 Enterprise 7200rpm",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 499
+  },
+  {
+    "id": "sto-hdd-sex-007",
+    "name": "Seagate 24TB Exos X24 Enterprise 7200rpm",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 599
+  },
+  {
+    "id": "sto-hdd-dsk-001",
+    "name": "WD 4TB Elements Desktop USB 3.0",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 99
+  },
+  {
+    "id": "sto-hdd-dsk-002",
+    "name": "WD 8TB Elements Desktop USB 3.0",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 179
+  },
+  {
+    "id": "sto-hdd-dsk-003",
+    "name": "WD 10TB Elements Desktop USB 3.0",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 219
+  },
+  {
+    "id": "sto-hdd-dsk-004",
+    "name": "WD 14TB Elements Desktop USB 3.0",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 279
+  },
+  {
+    "id": "sto-hdd-dsk-005",
+    "name": "WD 18TB Elements Desktop USB 3.0",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 349
+  },
+  {
+    "id": "sto-hdd-dsk-006",
+    "name": "Seagate 4TB Expansion Desktop USB 3.0",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 99
+  },
+  {
+    "id": "sto-hdd-dsk-007",
+    "name": "Seagate 8TB Expansion Desktop USB 3.0",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 169
+  },
+  {
+    "id": "sto-hdd-dsk-008",
+    "name": "Seagate 12TB Expansion Desktop USB 3.0",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 229
+  },
+  {
+    "id": "sto-hdd-dsk-009",
+    "name": "Seagate 16TB Expansion Desktop USB 3.0",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 299
+  },
+  {
+    "id": "sto-hdd-dsk-010",
+    "name": "Seagate 18TB Expansion Desktop USB 3.0",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 349
+  },
+  {
+    "id": "sto-hdd-pro-001",
+    "name": "SanDisk Professional 6TB G-DRIVE ArmorATD USB-C",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 199
+  },
+  {
+    "id": "sto-hdd-pro-002",
+    "name": "SanDisk Professional 8TB G-DRIVE Enterprise USB-C",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 279
+  },
+  {
+    "id": "sto-hdd-pro-003",
+    "name": "SanDisk Professional 12TB G-DRIVE Enterprise USB-C",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 399
+  },
+  {
+    "id": "sto-hdd-pro-004",
+    "name": "SanDisk Professional 16TB G-DRIVE Enterprise USB-C",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 499
+  },
+  {
+    "id": "sto-hdd-pro-005",
+    "name": "SanDisk Professional 22TB G-DRIVE Enterprise USB-C",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 649
+  },
+  {
+    "id": "sto-hdd-pro-006",
+    "name": "LaCie 4TB d2 Professional USB-C",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 229
+  },
+  {
+    "id": "sto-hdd-pro-007",
+    "name": "LaCie 8TB d2 Professional USB-C",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 349
+  },
+  {
+    "id": "sto-hdd-pro-008",
+    "name": "LaCie 12TB 1big Dock Thunderbolt 3",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 599
+  },
+  {
+    "id": "sto-hdd-pro-009",
+    "name": "LaCie 16TB 2big Dock Thunderbolt 3",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 899
+  },
+  {
+    "id": "sto-hdd-pro-010",
+    "name": "G-Technology 8TB G-RAID USB-C",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 449
+  },
+  {
+    "id": "sto-hdd-pro-011",
+    "name": "G-Technology 16TB G-RAID USB-C",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 699
+  },
+  {
+    "id": "sto-hdd-pro-012",
+    "name": "G-Technology 24TB G-RAID USB-C",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 999
+  },
+  {
+    "id": "sto-ssd-cin-001",
+    "name": "Glyph 1TB Atom SSD",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 159
+  },
+  {
+    "id": "sto-ssd-cin-002",
+    "name": "Glyph 2TB Atom SSD",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 279
+  },
+  {
+    "id": "sto-ssd-cin-003",
+    "name": "Glyph 1TB Atom Pro SSD Thunderbolt 3",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 249
+  },
+  {
+    "id": "sto-ssd-cin-004",
+    "name": "Glyph 2TB Atom Pro SSD Thunderbolt 3",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 449
+  },
+  {
+    "id": "sto-ssd-cin-005",
+    "name": "Glyph 4TB Atom Pro SSD Thunderbolt 3",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 799
+  },
+  {
+    "id": "sto-ssd-cin-006",
+    "name": "Angelbird 1TB SSD2go PKT USB-C",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 139
+  },
+  {
+    "id": "sto-ssd-cin-007",
+    "name": "Angelbird 2TB SSD2go PKT USB-C",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 249
+  },
+  {
+    "id": "sto-ssd-cin-008",
+    "name": "Angelbird 1TB SSD2go PRO USB-C",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 179
+  },
+  {
+    "id": "sto-ssd-cin-009",
+    "name": "Angelbird 2TB SSD2go PRO USB-C",
+    "category": "Armazenamento",
+    "spec": "Armazenamento",
+    "priceUSD": 329
+  },
+  { "id": "luz-amr-001", "name": "Amaran COB 60d S Daylight LED Monolight", "category": "Luzes", "spec": "Luzes", "priceUSD": 135 },
+  { "id": "luz-amr-002", "name": "Amaran COB 60x S Bi-Color LED Monolight", "category": "Luzes", "spec": "Luzes", "priceUSD": 159 },
+  { "id": "luz-amr-003", "name": "Amaran COB 100d S Daylight LED Monolight", "category": "Luzes", "spec": "Luzes", "priceUSD": 159 },
+  { "id": "luz-amr-004", "name": "Amaran COB 100x S Bi-Color LED Monolight", "category": "Luzes", "spec": "Luzes", "priceUSD": 199 },
+  { "id": "luz-amr-005", "name": "Amaran COB 200d S Daylight LED Monolight", "category": "Luzes", "spec": "Luzes", "priceUSD": 239 },
+  { "id": "luz-amr-006", "name": "Amaran COB 200x S Bi-Color LED Monolight", "category": "Luzes", "spec": "Luzes", "priceUSD": 249 },
+  { "id": "luz-amr-007", "name": "Amaran 150c RGB LED Monolight", "category": "Luzes", "spec": "Luzes", "priceUSD": 369 },
+  { "id": "luz-amr-008", "name": "Amaran 300c RGB LED Monolight", "category": "Luzes", "spec": "Luzes", "priceUSD": 569 },
+  { "id": "luz-amr-009", "name": "Amaran P60x Bi-Color LED Panel", "category": "Luzes", "spec": "Luzes", "priceUSD": 179 },
+  { "id": "luz-amr-010", "name": "Amaran P60c RGB LED Panel", "category": "Luzes", "spec": "Luzes", "priceUSD": 349 },
+  { "id": "luz-amr-011", "name": "Amaran P60x 3-Light Kit", "category": "Luzes", "spec": "Luzes", "priceUSD": 499 },
+  { "id": "luz-amr-012", "name": "Amaran T2c RGB LED Tube Light (2')", "category": "Luzes", "spec": "Luzes", "priceUSD": 169 },
+  { "id": "luz-amr-013", "name": "Amaran T4c RGB LED Tube Light (4')", "category": "Luzes", "spec": "Luzes", "priceUSD": 329 },
+  { "id": "luz-amr-014", "name": "Amaran PT1c RGB LED Pixel Tube (1')", "category": "Luzes", "spec": "Luzes", "priceUSD": 69 },
+  { "id": "luz-amr-015", "name": "Amaran PT2c RGB LED Pixel Tube (2')", "category": "Luzes", "spec": "Luzes", "priceUSD": 129 },
+  { "id": "luz-amr-016", "name": "Amaran F21x 2x1 Bi-Color LED Flexible Mat", "category": "Luzes", "spec": "Luzes", "priceUSD": 399 },
+  { "id": "luz-amr-017", "name": "Amaran F21c RGB LED Flexible Light Mat", "category": "Luzes", "spec": "Luzes", "priceUSD": 599 },
+  { "id": "luz-amr-018", "name": "Amaran F22x 2x2 Bi-Color LED Flexible Mat", "category": "Luzes", "spec": "Luzes", "priceUSD": 699 },
+  { "id": "luz-amr-019", "name": "Amaran F22c RGB LED Flexible Light Mat", "category": "Luzes", "spec": "Luzes", "priceUSD": 899 },
+  { "id": "luz-amr-020", "name": "Amaran AL-MW Mini LED Light", "category": "Luzes", "spec": "Luzes", "priceUSD": 49 },
+  { "id": "luz-sok-001", "name": "Sokani X8 RGB LED Video Light Tube", "category": "Luzes", "spec": "Luzes", "priceUSD": 59 },
+  { "id": "luz-sok-002", "name": "Sokani P25 Key Light Panel 25W", "category": "Luzes", "spec": "Luzes", "priceUSD": 79 },
+  { "id": "luz-sok-003", "name": "Sokani X25 RGB LED Video Light Tube", "category": "Luzes", "spec": "Luzes", "priceUSD": 99 },
+  { "id": "luz-sok-004", "name": "Sokani X60 Bi-Color 80W LED Video Light", "category": "Luzes", "spec": "Luzes", "priceUSD": 149 },
+  { "id": "luz-sok-005", "name": "Sokani X60 RGB 80W LED Video Light", "category": "Luzes", "spec": "Luzes", "priceUSD": 199 },
+  { "id": "luz-sok-006", "name": "Sokani X100 Bi-Color 100W LED Video Light", "category": "Luzes", "spec": "Luzes", "priceUSD": 189 },
+  { "id": "luz-sok-007", "name": "Sokani X100 RGB 100W LED Video Light", "category": "Luzes", "spec": "Luzes", "priceUSD": 299 },
+  { "id": "luz-lux-001", "name": "LUXCEO V8 RGB LED Video Light Wand", "category": "Luzes", "spec": "Luzes", "priceUSD": 25 },
+  { "id": "luz-lux-002", "name": "LUXCEO RGB LED Wand Portable", "category": "Luzes", "spec": "Luzes", "priceUSD": 45 },
+  { "id": "luz-lux-003", "name": "LUXCEO P200 RGB Tube Light", "category": "Luzes", "spec": "Luzes", "priceUSD": 69 },
+  { "id": "luz-lux-004", "name": "LUXCEO P40W RGB Fill Light", "category": "Luzes", "spec": "Luzes", "priceUSD": 89 },
+  { "id": "luz-lux-005", "name": "LUXCEO P120 RGB LED Video Light", "category": "Luzes", "spec": "Luzes", "priceUSD": 119 },
+  { "id": "luz-lux-006", "name": "LUXCEO P400 RGB Light Tube", "category": "Luzes", "spec": "Luzes", "priceUSD": 49 },
+  { "id": "luz-lux-007", "name": "LUXCEO P7 RGB Pro Waterproof Video Light", "category": "Luzes", "spec": "Luzes", "priceUSD": 90 },
+  { "id": "luz-lux-008", "name": "LUXCEO Q508A RGBWW LED Video Light Wand", "category": "Luzes", "spec": "Luzes", "priceUSD": 40 },
+  { "id": "luz-lux-009", "name": "LUXCEO SL100D 100W Bi-Color COB LED Video Light", "category": "Luzes", "spec": "Luzes", "priceUSD": 129 },
+  { "id": "luz-lux-010", "name": "LUXCEO FL100R 100W RGB LED Panel", "category": "Luzes", "spec": "Luzes", "priceUSD": 600 },
+  { "id": "luz-col-001", "name": "COLBOR W60 Bi-Color Pocket LED", "category": "Luzes", "spec": "Luzes", "priceUSD": 99 },
+  { "id": "luz-col-002", "name": "COLBOR W100 Bi-Color Pocket LED", "category": "Luzes", "spec": "Luzes", "priceUSD": 159 },
+  { "id": "luz-col-003", "name": "COLBOR CL60 Bi-Color LED Monolight", "category": "Luzes", "spec": "Luzes", "priceUSD": 109 },
+  { "id": "luz-col-004", "name": "COLBOR CL100X Bi-Color LED Monolight", "category": "Luzes", "spec": "Luzes", "priceUSD": 129 },
+  { "id": "luz-col-005", "name": "COLBOR CL60R RGB COB LED Monolight", "category": "Luzes", "spec": "Luzes", "priceUSD": 199 },
+  { "id": "luz-col-006", "name": "COLBOR CL220 220W Bi-Color COB", "category": "Luzes", "spec": "Luzes", "priceUSD": 349 },
+  { "id": "luz-col-007", "name": "COLBOR CL220R RGB 250W", "category": "Luzes", "spec": "Luzes", "priceUSD": 399 },
+  { "id": "luz-col-008", "name": "COLBOR CL600R RGB LED Monolight", "category": "Luzes", "spec": "Luzes", "priceUSD": 1498 },
+  { "id": "luz-gdx-001", "name": "Godox SL100Bi Bi-Color", "category": "Luzes", "spec": "Luzes", "priceUSD": 179 },
+  { "id": "luz-gdx-002", "name": "Godox SL150III Daylight", "category": "Luzes", "spec": "Luzes", "priceUSD": 199 },
+  { "id": "luz-gdx-003", "name": "Godox SL200III Daylight", "category": "Luzes", "spec": "Luzes", "priceUSD": 329 },
+  { "id": "luz-nan-001", "name": "Nanlite PavoTube II 6XR RGB (10\")", "category": "Luzes", "spec": "Luzes", "priceUSD": 149 },
+  { "id": "luz-nan-002", "name": "Nanlite PavoTube II 30XR RGB (4')", "category": "Luzes", "spec": "Luzes", "priceUSD": 369 },
+  { "id": "luz-nan-003", "name": "Nanlite Forza 60CR RGBLAC", "category": "Luzes", "spec": "Luzes", "priceUSD": 449 },
+  { "id": "luz-nan-004", "name": "Nanlite FC500B Bi-Color", "category": "Luzes", "spec": "Luzes", "priceUSD": 699 },
+  { "id": "luz-apu-001", "name": "Aputure LS 60d", "category": "Luzes", "spec": "Luzes", "priceUSD": 369 },
+  { "id": "luz-apu-002", "name": "Aputure LS 60x Bi-Color", "category": "Luzes", "spec": "Luzes", "priceUSD": 419 },
+  { "id": "luz-apu-003", "name": "Aputure Amaran 300c RGBWW", "category": "Luzes", "spec": "Luzes", "priceUSD": 569 },
+  { "id": "luz-apu-004", "name": "Aputure LS 300d II", "category": "Luzes", "spec": "Luzes", "priceUSD": 949 },
+  { "id": "luz-apu-005", "name": "Aputure LS 600d Pro", "category": "Luzes", "spec": "Luzes", "priceUSD": 1749 },
+  { "id": "luz-out-001", "name": "GVM 560-AS Bi-Color LED Panel", "category": "Luzes", "spec": "Luzes", "priceUSD": 69 },
+  { "id": "luz-out-002", "name": "Neewer 660 LED Bi-Color Panel", "category": "Luzes", "spec": "Luzes", "priceUSD": 102 },
+  { "id": "luz-out-003", "name": "GVM 800S RGB LED Panel", "category": "Luzes", "spec": "Luzes", "priceUSD": 159 },
+  { "id": "luz-out-004", "name": "Neewer FS150B 130W Bi-Color COB", "category": "Luzes", "spec": "Luzes", "priceUSD": 176 },
+  { "id": "luz-out-005", "name": "GVM 680RS RGB LED Kit (3x)", "category": "Luzes", "spec": "Luzes", "priceUSD": null }
+];
+
+export async function GET() {
+    try {
+        const colRef = collection(db, 'predefined_equipments');
+
+        // Using simple loop to avoid rate limiting or too many parallel writes for a small script
+        for (const eq of equipments) {
+            await setDoc(doc(colRef, eq.id), {
+                ...eq,
+                updatedAt: new Date()
+            });
+        }
+
+        return NextResponse.json({ success: true, count: equipments.length });
+    } catch (error: any) {
+        return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    }
+}

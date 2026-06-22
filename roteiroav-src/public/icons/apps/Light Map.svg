@@ -1,0 +1,67 @@
+<svg width="571" height="498" viewBox="0 0 571 498" fill="none" xmlns="http://www.w3.org/2000/svg">
+<!-- Background rounded rect with warm amber gradient -->
+<rect x="37" width="496" height="498" rx="108" fill="url(#paint0_lightmap)"/>
+
+<!-- Central light bulb body -->
+<ellipse cx="285" cy="210" rx="85" ry="90" fill="white" fill-opacity="0.95"/>
+
+<!-- Inner glow circle -->
+<circle cx="285" cy="200" r="55" fill="url(#paint1_radial_glow)"/>
+
+<!-- Filament lines -->
+<path d="M270 185 C270 210, 285 220, 285 195" stroke="#D97706" stroke-width="4" stroke-linecap="round"/>
+<path d="M300 185 C300 210, 285 220, 285 195" stroke="#D97706" stroke-width="4" stroke-linecap="round"/>
+
+<!-- Bulb base / screw -->
+<rect x="263" y="290" width="44" height="12" rx="3" fill="#E5E7EB"/>
+<rect x="267" y="302" width="36" height="10" rx="3" fill="#D1D5DB"/>
+<rect x="271" y="312" width="28" height="8" rx="3" fill="#9CA3AF"/>
+<rect x="275" y="320" width="20" height="6" rx="3" fill="#6B7280"/>
+
+<!-- Light rays emanating from bulb -->
+<!-- Top -->
+<line x1="285" y1="90" x2="285" y2="50" stroke="white" stroke-width="6" stroke-linecap="round" opacity="0.9"/>
+<!-- Top-right -->
+<line x1="350" y1="120" x2="380" y2="85" stroke="white" stroke-width="6" stroke-linecap="round" opacity="0.8"/>
+<!-- Right -->
+<line x1="395" y1="200" x2="440" y2="200" stroke="white" stroke-width="6" stroke-linecap="round" opacity="0.7"/>
+<!-- Bottom-right -->
+<line x1="355" y1="280" x2="385" y2="310" stroke="white" stroke-width="6" stroke-linecap="round" opacity="0.5"/>
+<!-- Top-left -->
+<line x1="220" y1="120" x2="190" y2="85" stroke="white" stroke-width="6" stroke-linecap="round" opacity="0.8"/>
+<!-- Left -->
+<line x1="175" y1="200" x2="130" y2="200" stroke="white" stroke-width="6" stroke-linecap="round" opacity="0.7"/>
+<!-- Bottom-left -->
+<line x1="215" y1="280" x2="185" y2="310" stroke="white" stroke-width="6" stroke-linecap="round" opacity="0.5"/>
+
+<!-- Map grid lines at the bottom -->
+<line x1="100" y1="380" x2="470" y2="380" stroke="white" stroke-width="3" stroke-linecap="round" opacity="0.4"/>
+<line x1="100" y1="410" x2="470" y2="410" stroke="white" stroke-width="3" stroke-linecap="round" opacity="0.3"/>
+<line x1="100" y1="440" x2="470" y2="440" stroke="white" stroke-width="3" stroke-linecap="round" opacity="0.2"/>
+
+<!-- Vertical grid lines -->
+<line x1="160" y1="365" x2="160" y2="455" stroke="white" stroke-width="3" stroke-linecap="round" opacity="0.25"/>
+<line x1="250" y1="365" x2="250" y2="455" stroke="white" stroke-width="3" stroke-linecap="round" opacity="0.25"/>
+<line x1="340" y1="365" x2="340" y2="455" stroke="white" stroke-width="3" stroke-linecap="round" opacity="0.25"/>
+<line x1="410" y1="365" x2="410" y2="455" stroke="white" stroke-width="3" stroke-linecap="round" opacity="0.25"/>
+
+<!-- Light cone projection onto map -->
+<path d="M255 340 L180 460 L390 460 L315 340" fill="white" fill-opacity="0.12"/>
+
+<!-- Small light indicators on the grid -->
+<circle cx="200" cy="400" r="8" fill="#FBBF24" fill-opacity="0.7"/>
+<circle cx="300" cy="420" r="6" fill="#FBBF24" fill-opacity="0.5"/>
+<circle cx="380" cy="395" r="7" fill="#FBBF24" fill-opacity="0.6"/>
+
+<defs>
+<linearGradient id="paint0_lightmap" x1="285" y1="0" x2="285" y2="498" gradientUnits="userSpaceOnUse">
+<stop stop-color="#FCD34D"/>
+<stop offset="1" stop-color="#B45309"/>
+</linearGradient>
+<radialGradient id="paint1_radial_glow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(285 200) rotate(90) scale(55)">
+<stop stop-color="#FEF3C7"/>
+<stop offset="0.6" stop-color="#FDE68A"/>
+<stop offset="1" stop-color="#F59E0B"/>
+</radialGradient>
+</defs>
+</svg>

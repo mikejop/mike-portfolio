@@ -1,0 +1,1 @@
+ESTRITA PROIBIÇÃO DE VERIFICAÇÃO: > Proibido utilizar a ferramenta de navegador (browser), criar planos de teste ou realizar qualquer verificação pós-edição. Após aplicar as mudanças cirúrgicas no código, encerre a tarefa imediatamente. A validação será realizada exclusivamente de forma manual por mim. Não gere "Progress Updates" de teste.
