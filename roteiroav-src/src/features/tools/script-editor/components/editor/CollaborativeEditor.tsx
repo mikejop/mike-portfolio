@@ -10,6 +10,88 @@ import { createFirestoreProvider } from "../../services/firestoreYjsProvider";
 import { cn } from "@/lib/utils";
 import { useScriptStore } from "../../store/useScriptStore";
 
+const characterPalette = [
+    "#5B9BD5", // azul
+    "#E05555", // vermelho coral
+    "#34C48A", // verde esmeralda
+    "#E59F27", // âmbar
+    "#9B7FDD", // violeta
+    "#E07B3A", // laranja
+    "#1DB8A8", // teal
+    "#C86DD4", // fúcsia
+];
+
+const getCharacterColorMap = () => {
+    const scriptContent = useScriptStore.getState().activeScriptContent;
+    if (!scriptContent) return {};
+    
+    const uniqueNames: string[] = [];
+    scriptContent.cenas.forEach(scene => {
+        scene.takes.forEach(take => {
+            const regex = /\[CHAR:([^\]]*)\]/gi;
+            let match;
+            if (take.audio) {
+                while ((match = regex.exec(take.audio)) !== null) {
+                    const name = match[1].trim().toUpperCase();
+                    if (name && !uniqueNames.includes(name)) {
+                        uniqueNames.push(name);
+                    }
+                }
+            }
+            if (take.visual) {
+                while ((match = regex.exec(take.visual)) !== null) {
+                    const name = match[1].trim().toUpperCase();
+                    if (name && !uniqueNames.includes(name)) {
+                        uniqueNames.push(name);
+                    }
+                }
+            }
+        });
+    });
+    
+    const map: { [name: string]: string } = {};
+    uniqueNames.forEach((name, idx) => {
+        map[name] = characterPalette[idx % characterPalette.length];
+    });
+    return map;
+};
+
+const getCharacterColor = (name: string, map: { [name: string]: string }) => {
+    const cleanName = name.trim().toUpperCase();
+    if (map[cleanName]) return map[cleanName];
+    const usedCount = Object.keys(map).length;
+    return characterPalette[usedCount % characterPalette.length];
+};
+
+const hexToRgbComponents = (hex: string) => {
+    if (!hex || !hex.startsWith('#')) return '91, 155, 213'; // default blue
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return `${r}, ${g}, ${b}`;
+};
+
+const getRegisteredCharacters = () => {
+    const scriptContent = useScriptStore.getState().activeScriptContent;
+    if (!scriptContent) return [];
+    const names: string[] = [];
+    scriptContent.cenas.forEach(scene => {
+        scene.takes.forEach(take => {
+            const regex = /\[CHAR:([^\]]*)\]/gi;
+            let match;
+            if (take.audio) {
+                while ((match = regex.exec(take.audio)) !== null) {
+                    const name = match[1].trim().toUpperCase();
+                    if (name && !names.includes(name)) {
+                        names.push(name);
+                    }
+                }
+            }
+        });
+    });
+    return names;
+};
+
 // ProseMirror decoration plugin to visually render structured script elements
 const RoteiroDecorationExtension = Extension.create({
     name: 'roteiroDecoration',
@@ -23,10 +105,22 @@ const RoteiroDecorationExtension = Extension.create({
                     apply(tr, oldSet, oldState, newState) {
                         const { doc } = tr;
                         const decorations: Decoration[] = [];
+                        const charColorMap = getCharacterColorMap();
+
+                        let lastActiveCharName: string | null = null;
 
                         doc.descendants((node, pos) => {
                             if (node.isTextblock) {
                                 const text = node.textContent;
+                                
+                                // Detect if this is a CHAR block
+                                if (text.startsWith('[CHAR:')) {
+                                    const match = /\[CHAR:([^\]]*)\]/i.exec(text);
+                                    lastActiveCharName = match ? match[1].trim().toUpperCase() : null;
+                                } else if (text.startsWith('[TRILHA') || text.startsWith('[SFX')) {
+                                    lastActiveCharName = null;
+                                }
+
                                 const regex = /\[([A-Z_]+)(?::([^\]]*))?\]/g;
                                 let match;
                                 let firstTagType: string | null = null;
@@ -47,22 +141,47 @@ const RoteiroDecorationExtension = Extension.create({
                                     const isFocused = (selection.from >= start && selection.from <= end) ||
                                                       (selection.to >= start && selection.to <= end);
 
+                                    // Determine inline tag styling style attribute
+                                    let style = "";
+                                    if (tagType === 'CHAR') {
+                                        const charColor = getCharacterColor(tagVal, charColorMap);
+                                        style = `color: ${charColor} !important;`;
+                                    } else if (lastActiveCharName && ['DIAL', 'VO', 'OFF', 'LOC', 'ENTREVISTA'].includes(tagType)) {
+                                        const charColor = getCharacterColor(lastActiveCharName, charColorMap);
+                                        style = `color: ${charColor} !important; opacity: 0.85;`;
+                                    }
+
                                     decorations.push(
                                         Decoration.inline(start, end, {
                                             class: `roteiro-tag roteiro-tag-${tagType.toLowerCase()} ${isFocused ? 'roteiro-tag-focused' : 'roteiro-tag-blurred'}`,
+                                            style,
                                             'data-tag': tagType,
                                             'data-val': tagVal
                                         })
                                     );
                                 }
 
-                                // Apply block decoration to paragraph if tag is at the start (ignoring spaces)
+                                // Apply block decoration to paragraph if tag is at the start
                                 if (firstTagType && firstMatchIdx !== -1) {
                                     const textBeforeFirstTag = text.slice(0, firstMatchIdx);
                                     if (textBeforeFirstTag.trim() === "") {
+                                        let style = "";
+                                        if (firstTagType === 'CHAR') {
+                                            const closeIdx = text.indexOf(']');
+                                            const charName = closeIdx !== -1 ? text.slice(firstMatchIdx + 6, closeIdx).trim().toUpperCase() : "";
+                                            const charColor = getCharacterColor(charName, charColorMap);
+                                            const rgb = hexToRgbComponents(charColor);
+                                            style = `--char-color: ${charColor}; --char-color-rgb: ${rgb}; border-left-color: var(--char-color) !important; background-color: rgba(var(--char-color-rgb), var(--roteiro-bg-opacity)) !important;`;
+                                        } else if (lastActiveCharName && ['DIAL', 'VO', 'OFF', 'LOC', 'ENTREVISTA'].includes(firstTagType)) {
+                                            const charColor = getCharacterColor(lastActiveCharName, charColorMap);
+                                            const rgb = hexToRgbComponents(charColor);
+                                            style = `--char-color: ${charColor}; --char-color-rgb: ${rgb}; border-left-color: var(--char-color) !important; background-color: rgba(var(--char-color-rgb), var(--roteiro-bg-opacity)) !important;`;
+                                        }
+
                                         decorations.push(
                                             Decoration.node(pos, pos + node.nodeSize, {
-                                                class: `roteiro-block roteiro-block-${firstTagType.toLowerCase()}`
+                                                class: `roteiro-block roteiro-block-${firstTagType.toLowerCase()}`,
+                                                style
                                             })
                                         );
                                     }
@@ -126,6 +245,26 @@ const getSlashQuery = (editor: Editor) => {
     };
 };
 
+const getCharAutocompleteInfo = (editor: Editor) => {
+    const { selection } = editor.state;
+    const { $from } = selection;
+    const textOfBlock = $from.parent.textContent;
+    const caretPos = $from.parentOffset;
+    
+    if (textOfBlock.startsWith('[CHAR:')) {
+        const closeBracketIdx = textOfBlock.indexOf(']');
+        if (caretPos > 6 && (closeBracketIdx === -1 || caretPos <= closeBracketIdx)) {
+            const query = textOfBlock.slice(6, closeBracketIdx !== -1 ? closeBracketIdx : caretPos);
+            return {
+                query: query.trim(),
+                from: $from.start() + 6,
+                to: $from.start() + (closeBracketIdx !== -1 ? closeBracketIdx : caretPos)
+            };
+        }
+    }
+    return null;
+};
+
 const getParentBlockType = (editor: Editor) => {
     const { selection } = editor.state;
     const { $from } = selection;
@@ -139,8 +278,6 @@ const getParentBlockType = (editor: Editor) => {
         textOfBlock.startsWith('[ENTREVISTA]')) {
         return 'CHAR_DIALOGUE';
     }
-    if (textOfBlock.startsWith('[TRILHA]') || textOfBlock.startsWith('[TRILHA:')) return 'TRILHA';
-    if (textOfBlock.startsWith('[SFX]') || textOfBlock.startsWith('[SFX:')) return 'SFX';
     return 'NONE';
 };
 
@@ -154,9 +291,9 @@ const getAudioMenuOptions = (
 
     if (parentType === 'NONE') {
         const mains = [
-            { label: 'Personagem (/char)', cmd: 'char', markup: '[CHAR:]' },
-            { label: 'Trilha Sonora (/trilha)', cmd: 'trilha', markup: '[TRILHA]' },
-            { label: 'Efeito Sonoro (/sfx)', cmd: 'sfx', markup: '[SFX]' }
+            { label: 'Personagem / Fala (/char)', cmd: 'char', markup: '[CHAR:]' },
+            { label: 'Trilha Sonora (/trilha)', cmd: 'trilha', markup: '[TRILHA:] ' },
+            { label: 'Efeito Sonoro (/sfx)', cmd: 'sfx', markup: '[SFX:] ' }
         ];
         return mains
             .filter(m => !q || m.label.toLowerCase().includes(q) || m.cmd.includes(q))
@@ -174,39 +311,6 @@ const getAudioMenuOptions = (
             { label: 'OFF (/off)', cmd: 'off', val: 'OFF' },
             { label: 'LOC (/loc)', cmd: 'loc', val: 'LOC' },
             { label: 'ENTREVISTA (/entrevista)', cmd: 'entrevista', val: 'ENTREVISTA' }
-        ];
-        return subs
-            .filter(s => !q || s.label.toLowerCase().includes(q) || s.cmd.includes(q))
-            .map(s => ({
-                label: s.label,
-                command: `/${s.cmd}`,
-                action: () => onSelectSub(s.val)
-            }));
-    }
-
-    if (parentType === 'TRILHA') {
-        const subs = [
-            { label: 'Original (/original)', cmd: 'original', val: 'Original' },
-            { label: 'Banco (/banco)', cmd: 'banco', val: 'Banco' },
-            { label: 'Diegética (/diegetica)', cmd: 'diegetica', val: 'Diegética' },
-            { label: 'Não-Diegética (/naodiegetica)', cmd: 'naodiegetica', val: 'Não-Diegética' },
-            { label: 'Tema (/tema)', cmd: 'tema', val: 'Tema' }
-        ];
-        return subs
-            .filter(s => !q || s.label.toLowerCase().includes(q) || s.cmd.includes(q))
-            .map(s => ({
-                label: s.label,
-                command: `/${s.cmd}`,
-                action: () => onSelectSub(s.val)
-            }));
-    }
-
-    if (parentType === 'SFX') {
-        const subs = [
-            { label: 'Som Ambiente (/ambiente)', cmd: 'ambiente', val: 'Som Ambiente' },
-            { label: 'Foley (/foley)', cmd: 'foley', val: 'Foley' },
-            { label: 'Hard SFX (/hardsfx)', cmd: 'hardsfx', val: 'Hard SFX' },
-            { label: 'Silêncio (/silencio)', cmd: 'silencio', val: 'Silêncio' }
         ];
         return subs
             .filter(s => !q || s.label.toLowerCase().includes(q) || s.cmd.includes(q))
@@ -406,11 +510,34 @@ export function CollaborativeEditor({
             .insertContentAt({ from, to }, tagMarkup)
             .run();
             
-        if (tagMarkup.includes('CHAR:')) {
+        if (tagMarkup.startsWith('[CHAR:')) {
+            // Position cursor inside [CHAR:] right after the colon for name typing
             editor.commands.setTextSelection(from + 6);
+        } else if (tagMarkup.startsWith('[TRILHA:]')) {
+            // TRILHA is inline: position cursor after the tag+space so user types content directly
+            editor.commands.setTextSelection(from + tagMarkup.length);
+        } else if (tagMarkup.startsWith('[SFX:]')) {
+            // SFX is inline: position cursor after the tag+space so user types content directly
+            editor.commands.setTextSelection(from + tagMarkup.length);
         } else {
             editor.commands.setTextSelection(from + tagMarkup.length);
         }
+    };
+
+    const insertCharAutocomplete = (editor: Editor, name: string) => {
+        const { selection } = editor.state;
+        const { $from } = selection;
+        const from = $from.before() + 1;
+        const to = $from.after() - 1;
+        
+        const tag = `[CHAR:${name.toUpperCase()}]`;
+        editor.chain()
+            .focus()
+            .insertContentAt({ from, to }, tag)
+            .run();
+        
+        // Position cursor after the closing bracket (name is complete, ready to press Enter)
+        editor.commands.setTextSelection(from + tag.length);
     };
 
     const insertAudioSubTag = (editor: Editor, subVal: string) => {
@@ -419,11 +546,7 @@ export function CollaborativeEditor({
         const text = $from.parent.textContent;
         
         let newText = text;
-        if (text.startsWith('[TRILHA')) {
-            newText = text.replace(/\[TRILHA.*?\]\s*\/[a-z_]*/i, `[TRILHA:${subVal}] `);
-        } else if (text.startsWith('[SFX')) {
-            newText = text.replace(/\[SFX.*?\]\s*\/[a-z_]*/i, `[SFX:${subVal}] `);
-        } else if (text.startsWith('[DIAL') || text.startsWith('[VO') || text.startsWith('[OFF') || text.startsWith('[LOC') || text.startsWith('[ENTREVISTA')) {
+        if (text.startsWith('[DIAL') || text.startsWith('[VO') || text.startsWith('[OFF') || text.startsWith('[LOC') || text.startsWith('[ENTREVISTA')) {
             newText = text.replace(/\[[A-Z]+\]\s*\/[a-z_]*/i, `[${subVal}] `);
         } else if (text.startsWith('[CHAR:')) {
             newText = text + ` [${subVal}]`;
@@ -467,6 +590,40 @@ export function CollaborativeEditor({
         if (!editor) return;
 
         const updateHandler = () => {
+            // First check if character autocomplete is active
+            const charAutocomplete = getCharAutocompleteInfo(editor);
+            if (charAutocomplete) {
+                const registered = getRegisteredCharacters();
+                const q = charAutocomplete.query.toUpperCase();
+                const filtered = registered.filter(name => !q || name.startsWith(q));
+
+                const opts = filtered.map(name => ({
+                    label: name,
+                    command: name,
+                    action: () => {
+                        insertCharAutocomplete(editor, name);
+                        setSlashMenu(prev => ({ ...prev, visible: false }));
+                    }
+                }));
+
+                const { selection } = editor.state;
+                const coords = editor.view.coordsAtPos(selection.from);
+                const editorRect = editor.view.dom.getBoundingClientRect();
+                const top = coords.bottom - editorRect.top + editor.view.dom.scrollTop + 4;
+                const left = coords.left - editorRect.left + editor.view.dom.scrollLeft;
+
+                setSlashMenu({
+                    visible: opts.length > 0,
+                    query: charAutocomplete.query,
+                    x: left,
+                    y: top,
+                    options: opts,
+                    activeIndex: 0
+                });
+                return;
+            }
+
+            // Standard slash commands menu
             const slashInfo = getSlashQuery(editor);
             if (slashInfo) {
                 const { selection } = editor.state;

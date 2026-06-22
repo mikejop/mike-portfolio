@@ -245,7 +245,10 @@
   text-transform: uppercase;
 }
 .roteiro-tag-blurred.roteiro-tag-char::before {
-  content: attr(data-val);
+  content: attr(data-val) ": ";
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.05em;
 }
 
 /* Dialogue Qualifiers */
@@ -264,22 +267,20 @@
 .roteiro-tag-entrevista { color: #85B7EB; }
 .roteiro-tag-blurred.roteiro-tag-entrevista::before { content: "ENTREVISTA: "; }
 
-/* Trilha sonora */
+/* Trilha sonora — inline element: label is fixed, content follows after the tag */
 .roteiro-tag-trilha { color: #9B7FDD; }
-.roteiro-tag-blurred.roteiro-tag-trilha[data-val=""]::before {
+.roteiro-tag-blurred.roteiro-tag-trilha::before {
   content: "TRILHA: ";
-}
-.roteiro-tag-blurred.roteiro-tag-trilha:not([data-val=""])::before {
-  content: "TRILHA (" attr(data-val) "): ";
+  font-weight: 700;
+  letter-spacing: 0.05em;
 }
 
-/* SFX */
+/* SFX — inline element: label is fixed, content follows after the tag */
 .roteiro-tag-sfx { color: #34C48A; }
-.roteiro-tag-blurred.roteiro-tag-sfx[data-val=""]::before {
+.roteiro-tag-blurred.roteiro-tag-sfx::before {
   content: "SFX: ";
-}
-.roteiro-tag-blurred.roteiro-tag-sfx:not([data-val=""])::before {
-  content: "SFX (" attr(data-val) "): ";
+  font-weight: 700;
+  letter-spacing: 0.05em;
 }
 
 /* Roteiro tags (VISUAL) - Inline Badges */
