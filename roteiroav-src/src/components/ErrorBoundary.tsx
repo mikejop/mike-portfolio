@@ -193,7 +193,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
                         </button>
                         <button
                             onClick={() => {
-                                window.location.href = "/";
+                                window.location.href = "/roteiroav/";
                             }}
                             style={{
                                 padding: "10px 20px",

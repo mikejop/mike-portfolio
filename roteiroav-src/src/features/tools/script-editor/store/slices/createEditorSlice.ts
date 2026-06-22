@@ -443,7 +443,7 @@ export const createEditorSlice: StateCreator<
             _metadataUnsub = subscribeToActiveScriptMetadata(resolvedRoomId, resolvedOwnerId, id, (metaData) => {
                 if (!metaData) {
                     if (typeof window !== 'undefined') {
-                        window.location.href = "/tools/script-editor";
+                        window.location.href = "/roteiroav/tools/script-editor";
                     }
                     return;
                 }

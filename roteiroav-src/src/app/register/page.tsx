@@ -10,7 +10,7 @@ export default function FormPage() {
     const handleMessage = (event: MessageEvent) => {
       // Logic for redirect if needed
       if (event.data === 'registration-success') {
-        window.location.href = '/';
+        window.location.href = '/roteiroav/';
       }
     };
 

@@ -34,7 +34,7 @@ export function ProjectSidebar() {
     const handleLogout = async () => {
         if (await requestConfirm("Sair da Conta", "Deseja realmente sair?")) {
             await signOut(auth);
-            window.location.href = "/login";
+            router.push("/login");
         }
     };
 
