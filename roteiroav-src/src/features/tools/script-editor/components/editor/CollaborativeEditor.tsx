@@ -361,13 +361,15 @@ const RoteiroDecorationExtension = Extension.create({
                         groupedBlocks.forEach((b) => {
                             let blockStyle = '';
                             const firstTagType = b.firstTagType;
+                            let isSpeech = false;
 
                             if (b.groupType === 'CHAR') {
                                 const charColor = getCharacterColor(b.charName || '', charColorMap);
                                 const rgb = hexToRgbComponents(charColor);
                                 blockStyle = `--char-color:${charColor};border-left-color:${charColor}!important;background-color:rgba(${rgb},var(--roteiro-bg-opacity))!important;`;
-                                if (['DIAL','VO','OFF','LOC','ENTREVISTA'].includes(firstTagType || '')) {
+                                if (firstTagType !== 'CHAR') {
                                     blockStyle += `color:${charColor}!important;`;
+                                    isSpeech = true;
                                 }
                             } else if (b.groupType === 'TRILHA') {
                                 blockStyle = 'color:#9B7FDD!important;';
@@ -377,10 +379,11 @@ const RoteiroDecorationExtension = Extension.create({
 
                             const groupClass = `roteiro-group-${b.positionInGroup}`;
                             const tagClass = firstTagType ? `roteiro-block-${firstTagType.toLowerCase()}` : '';
+                            const speechClass = isSpeech ? 'roteiro-block-speech' : '';
 
                             decorations.push(
                                 Decoration.node(b.pos, b.pos + b.nodeSize, {
-                                    class: cn(`roteiro-block`, tagClass, groupClass),
+                                    class: cn(`roteiro-block`, tagClass, groupClass, speechClass),
                                     style: blockStyle,
                                 })
                             );

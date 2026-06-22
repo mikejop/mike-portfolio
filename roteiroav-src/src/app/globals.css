@@ -340,3 +340,25 @@
   font-size: 0.6rem;
   padding: 0 3px 0 5px;
 }
+
+/* Speech blocks (dialogue and continuation) indentation and alignment */
+.roteiro-block-speech {
+  position: relative;
+  padding-left: 105px !important; /* Indent all speech lines to align them */
+}
+
+.roteiro-block-speech .roteiro-chip {
+  position: absolute;
+  left: 10px;
+  margin: 0;
+}
+
+.roteiro-group-start.roteiro-block-speech .roteiro-chip,
+.roteiro-group-standalone.roteiro-block-speech .roteiro-chip {
+  top: 8px;
+}
+
+.roteiro-group-middle.roteiro-block-speech .roteiro-chip,
+.roteiro-group-end.roteiro-block-speech .roteiro-chip {
+  top: 3px;
+}
