@@ -214,170 +214,96 @@
   background: rgba(52, 196, 138, var(--roteiro-bg-opacity)) !important;
 }
 
-/* Tag inline decoration */
-.roteiro-tag {
-  font-weight: bold;
-  border-radius: 4px;
-}
-
-/* Focused vs Blurred Tag Display */
-.roteiro-tag-blurred {
+/* ─── Hide raw tag markup (chip widgets replace it visually) ─── */
+.roteiro-raw-hidden {
   font-size: 0 !important;
-  user-select: all;
+  user-select: none;
+  pointer-events: none;
+  line-height: 0;
 }
 
-.roteiro-tag-blurred::before {
-  font-size: 0.875rem !important;
-}
-
-.roteiro-tag-focused {
-  opacity: 0.9;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px dashed rgba(255, 255, 255, 0.2);
-  padding: 0 2px;
-  font-size: 0.875rem !important;
-}
-
-/* CHAR split-decoration approach:
-   [CHAR: prefix and ] suffix are always hidden
-   Only the typed name is visible, in uppercase with character color */
-
-/* Always hide the markup brackets [CHAR: and ] */
+/* ─── CHAR empty-state: hide [CHAR: and ] so cursor looks blank ─── */
 .roteiro-char-markup {
   font-size: 0 !important;
   opacity: 0;
   user-select: none;
   pointer-events: none;
-  display: inline;
 }
 
-/* Character name — visible, uppercase, bold, colored */
-.roteiro-char-name {
-  text-transform: uppercase !important;
-  font-weight: 700 !important;
-  letter-spacing: 0.06em;
-  font-size: 0.875rem;
-  display: inline;
-}
+/* ═══════════════════════════════════════════════════════════════
+   CHIP / BADGE  —  all structured script elements
+   ═══════════════════════════════════════════════════════════════ */
 
-/* Blurred state: add colon after name (MICHAEL:) */
-.roteiro-char-name-blurred::after {
-  content: ":";
+.roteiro-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 1px 3px 1px 6px;
+  border-radius: 4px;
+  border: 1px solid transparent; /* colour set via inline style */
+  font-size: 0.65rem;
   font-weight: 700;
-}
-
-/* Dialogue Qualifiers — labels always uppercase */
-.roteiro-tag-dial { color: #85B7EB; }
-.roteiro-tag-blurred.roteiro-tag-dial::before { content: "DIAL: "; text-transform: uppercase; font-weight: 700; }
-
-.roteiro-tag-vo { color: #85B7EB; }
-.roteiro-tag-blurred.roteiro-tag-vo::before { content: "VO: "; text-transform: uppercase; font-weight: 700; }
-
-.roteiro-tag-off { color: #85B7EB; }
-.roteiro-tag-blurred.roteiro-tag-off::before { content: "OFF: "; text-transform: uppercase; font-weight: 700; }
-
-.roteiro-tag-loc { color: #85B7EB; }
-.roteiro-tag-blurred.roteiro-tag-loc::before { content: "LOC: "; text-transform: uppercase; font-weight: 700; }
-
-.roteiro-tag-entrevista { color: #85B7EB; }
-.roteiro-tag-blurred.roteiro-tag-entrevista::before { content: "ENTREVISTA: "; text-transform: uppercase; font-weight: 700; }
-
-/* Trilha sonora — inline element: label is fixed, content follows after the tag */
-.roteiro-tag-trilha { color: #9B7FDD; }
-.roteiro-tag-blurred.roteiro-tag-trilha::before {
-  content: "TRILHA: ";
-  font-weight: 700;
+  text-transform: uppercase;
   letter-spacing: 0.05em;
+  vertical-align: middle;
+  margin: 0 4px 0 1px;
+  line-height: 1.5;
+  user-select: none;
+  cursor: default;
+  white-space: nowrap;
+  transition: filter 0.15s ease, opacity 0.15s ease;
 }
 
-/* SFX — inline element: label is fixed, content follows after the tag */
-.roteiro-tag-sfx { color: #34C48A; }
-.roteiro-tag-blurred.roteiro-tag-sfx::before {
-  content: "SFX: ";
+.roteiro-chip:hover {
+  filter: brightness(1.15);
+}
+
+.roteiro-chip-label {
   font-weight: 700;
-  letter-spacing: 0.05em;
+  font-size: inherit;
+  text-transform: uppercase;
+  letter-spacing: inherit;
+  line-height: inherit;
 }
 
-/* Roteiro tags (VISUAL) - Inline Badges */
-.roteiro-tag-plano,
-.roteiro-tag-angulo,
-.roteiro-tag-posicao,
-.roteiro-tag-movcam,
-.roteiro-tag-lente,
-.roteiro-tag-luz,
-.roteiro-tag-insercao {
-  display: inline-block !important;
-  padding: 1px 5px !important;
-  margin-right: 6px !important;
-  border-radius: 0 4px 4px 0 !important;
-  font-size: 0.75rem !important;
-  font-weight: 700 !important;
-  text-transform: uppercase !important;
-  vertical-align: middle !important;
+/* The × delete button */
+.roteiro-chip-delete {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  min-width: 14px;
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: transparent;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0.45;
+  transition: opacity 0.15s ease, background 0.15s ease;
+  flex-shrink: 0;
+  outline: none;
 }
 
-.roteiro-tag-plano {
-  border-left: 3px solid #E59F27 !important;
-  background: rgba(229, 159, 39, var(--roteiro-bg-opacity)) !important;
-  color: #E59F27 !important;
+.roteiro-chip-delete:hover {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.2);
 }
-.roteiro-tag-blurred.roteiro-tag-plano::before { content: attr(data-val); }
 
-.roteiro-tag-angulo {
-  border-left: 3px solid #E07B3A !important;
-  background: rgba(224, 123, 58, var(--roteiro-bg-opacity)) !important;
-  color: #E07B3A !important;
+/* ─── Visual column chips show value directly (e.g. "PP" for PLANO) ─── */
+.roteiro-chip-plano,
+.roteiro-chip-angulo,
+.roteiro-chip-posicao,
+.roteiro-chip-movcam,
+.roteiro-chip-lente,
+.roteiro-chip-luz,
+.roteiro-chip-insercao,
+.roteiro-chip-transicao {
+  margin: 0 3px 0 0;
+  font-size: 0.6rem;
+  padding: 0 3px 0 5px;
 }
-.roteiro-tag-blurred.roteiro-tag-angulo::before { content: attr(data-val); }
-
-.roteiro-tag-posicao {
-  border-left: 3px solid #C8A020 !important;
-  background: rgba(200, 160, 32, var(--roteiro-bg-opacity)) !important;
-  color: #C8A020 !important;
-}
-.roteiro-tag-blurred.roteiro-tag-posicao::before { content: attr(data-val); }
-
-.roteiro-tag-movcam {
-  border-left: 3px solid #1DB8A8 !important;
-  background: rgba(29, 184, 168, var(--roteiro-bg-opacity)) !important;
-  color: #1DB8A8 !important;
-}
-.roteiro-tag-blurred.roteiro-tag-movcam::before { content: attr(data-val); }
-
-.roteiro-tag-lente {
-  border-left: 3px solid #38B8F0 !important;
-  background: rgba(56, 184, 240, var(--roteiro-bg-opacity)) !important;
-  color: #38B8F0 !important;
-}
-.roteiro-tag-blurred.roteiro-tag-lente::before { content: attr(data-val); }
-
-.roteiro-tag-luz {
-  border-left: 3px solid #D4A800 !important;
-  background: rgba(212, 168, 0, var(--roteiro-bg-opacity)) !important;
-  color: #D4A800 !important;
-}
-.roteiro-tag-blurred.roteiro-tag-luz::before { content: attr(data-val); }
-
-.roteiro-tag-insercao {
-  border-left: 3px solid #C86DD4 !important;
-  background: rgba(200, 109, 212, var(--roteiro-bg-opacity)) !important;
-  color: #C86DD4 !important;
-}
-.roteiro-tag-blurred.roteiro-tag-insercao::before { content: attr(data-val); }
-
-/* Special Transition (bottom right alinhado) */
-.roteiro-tag-transicao {
-  color: #E05555 !important;
-  font-weight: 700 !important;
-  text-transform: uppercase !important;
-  font-size: 0.75rem !important;
-}
-.roteiro-tag-blurred.roteiro-tag-transicao {
-  position: absolute !important;
-  bottom: 6px !important;
-  right: 12px !important;
-  display: block !important;
-  border-left: none !important;
-  background: transparent !important;
-}
-.roteiro-tag-blurred.roteiro-tag-transicao::before { content: attr(data-val); }

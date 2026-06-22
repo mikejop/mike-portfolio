@@ -92,6 +92,87 @@ const getRegisteredCharacters = () => {
     return names;
 };
 
+// ─── Chip colour palette for every element type ───────────────────────────────
+const CHIP_COLORS: Record<string, string> = {
+    CHAR: '#5B9BD5',
+    DIAL: '#85B7EB', VO: '#85B7EB', OFF: '#85B7EB', LOC: '#85B7EB', ENTREVISTA: '#85B7EB',
+    TRILHA: '#9B7FDD',
+    SFX: '#34C48A',
+    PLANO: '#E59F27', ANGULO: '#E07B3A', POSICAO: '#C8A020',
+    MOVCAM: '#1DB8A8', LENTE: '#38B8F0', LUZ: '#D4A800',
+    INSERCAO: '#C86DD4', TRANSICAO: '#E05555',
+};
+
+const VISUAL_TAG_TYPES = new Set(['PLANO', 'ANGULO', 'POSICAO', 'MOVCAM', 'LENTE', 'LUZ', 'INSERCAO', 'TRANSICAO']);
+
+/**
+ * Creates a ProseMirror widget Decoration that renders a chip/badge with a
+ * label and a × delete button.  The raw tag text is hidden separately via an
+ * inline decoration (.roteiro-raw-hidden).
+ */
+const makeChipDecoration = (
+    tagType: string,
+    tagVal: string,
+    tagStart: number,
+    tagEnd: number,
+    chipColor: string
+): Decoration => {
+    // Visible label inside the chip
+    let labelText: string;
+    if (tagType === 'CHAR') {
+        labelText = (tagVal || 'CHAR').toUpperCase();
+    } else if (VISUAL_TAG_TYPES.has(tagType)) {
+        // Visual column chips show the selected sub-value (e.g., "PP" not "PLANO")
+        labelText = tagVal || tagType;
+    } else {
+        labelText = tagType; // DIAL, TRILHA, SFX …
+    }
+
+    return Decoration.widget(
+        tagStart,
+        (view) => {
+            const rgb = hexToRgbComponents(chipColor);
+
+            const chip = document.createElement('span');
+            chip.contentEditable = 'false';
+            chip.className = `roteiro-chip roteiro-chip-${tagType.toLowerCase()}`;
+            chip.style.cssText =
+                `border-color:${chipColor};background:rgba(${rgb},0.13);`;
+
+            const lbl = document.createElement('span');
+            lbl.className = 'roteiro-chip-label';
+            lbl.style.color = chipColor;
+            lbl.textContent = labelText;
+            chip.appendChild(lbl);
+
+            const btn = document.createElement('button');
+            btn.className = 'roteiro-chip-delete';
+            btn.type = 'button';
+            btn.title = 'Remover elemento';
+            btn.textContent = '×';
+            btn.style.color = chipColor;
+            btn.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const { state } = view;
+                const safeEnd = Math.min(tagEnd, state.doc.content.size);
+                if (tagStart < safeEnd) {
+                    try {
+                        const snippet = state.doc.textBetween(tagStart, safeEnd);
+                        if (snippet.startsWith('[')) {
+                            view.dispatch(state.tr.delete(tagStart, safeEnd));
+                        }
+                    } catch { /* position shifted due to concurrent edit */ }
+                }
+                view.focus();
+            });
+            chip.appendChild(btn);
+            return chip;
+        },
+        { side: -1, ignoreSelection: true, key: `chip-${tagStart}-${tagType}` }
+    );
+};
+
 // ProseMirror decoration plugin to visually render structured script elements
 const RoteiroDecorationExtension = Extension.create({
     name: 'roteiroDecoration',
@@ -102,127 +183,102 @@ const RoteiroDecorationExtension = Extension.create({
                 key: new PluginKey('roteiroDecoration'),
                 state: {
                     init() { return DecorationSet.empty; },
-                    apply(tr, oldSet, oldState, newState) {
+                    apply(tr, _oldSet, _oldState, newState) {
                         const { doc } = tr;
                         const decorations: Decoration[] = [];
                         const charColorMap = getCharacterColorMap();
-
                         let lastActiveCharName: string | null = null;
 
                         doc.descendants((node, pos) => {
-                            if (node.isTextblock) {
-                                const text = node.textContent;
-                                
-                                // Detect if this is a CHAR block
-                                if (text.startsWith('[CHAR:')) {
-                                    const match = /\[CHAR:([^\]]*)\]/i.exec(text);
-                                    lastActiveCharName = match ? match[1].trim().toUpperCase() : null;
-                                } else if (text.startsWith('[TRILHA') || text.startsWith('[SFX')) {
-                                    lastActiveCharName = null;
+                            if (!node.isTextblock) return;
+                            const text = node.textContent;
+
+                            // Track active character for dialogue block colouring
+                            if (text.startsWith('[CHAR:')) {
+                                const m = /\[CHAR:([^\]]*)\]/i.exec(text);
+                                lastActiveCharName = m ? m[1].trim().toUpperCase() : null;
+                            } else if (text.startsWith('[TRILHA') || text.startsWith('[SFX')) {
+                                lastActiveCharName = null;
+                            }
+
+                            const tagRegex = /\[([A-Z_]+)(?::([^\]]*))?\]/g;
+                            let match;
+                            let firstTagType: string | null = null;
+                            let firstMatchIdx = -1;
+
+                            while ((match = tagRegex.exec(text)) !== null) {
+                                const start = pos + 1 + match.index;
+                                const end   = start + match[0].length;
+                                const tagType = match[1];
+                                const tagVal  = match[2] ?? '';
+
+                                if (firstMatchIdx === -1) {
+                                    firstMatchIdx = match.index;
+                                    firstTagType  = tagType;
                                 }
 
-                                const regex = /\[([A-Z_]+)(?::([^\]]*))?\]/g;
-                                let match;
-                                let firstTagType: string | null = null;
-                                let firstMatchIdx = -1;
-
-                                while ((match = regex.exec(text)) !== null) {
-                                    const start = pos + 1 + match.index;
-                                    const end = start + match[0].length;
-                                    const tagType = match[1];
-                                    const tagVal = match[2] || "";
-
-                                    if (firstMatchIdx === -1) {
-                                        firstMatchIdx = match.index;
-                                        firstTagType = tagType;
-                                    }
-
-                                    const { selection } = newState;
-                                    const isFocused = (selection.from >= start && selection.from <= end) ||
-                                                      (selection.to >= start && selection.to <= end);
-
+                                if (tagType === 'CHAR' && !tagVal) {
+                                    // Empty CHAR (initial state) — show cursor
+                                    // between hidden brackets so the field looks blank.
+                                    decorations.push(Decoration.inline(start, start + 6, { class: 'roteiro-raw-hidden' }));
+                                    decorations.push(Decoration.inline(end - 1, end,     { class: 'roteiro-raw-hidden' }));
+                                    decorations.push(Decoration.inline(start, end,       { 'data-tag': tagType, 'data-val': tagVal }));
+                                } else {
+                                    // Determine chip colour
+                                    let chipColor: string;
                                     if (tagType === 'CHAR') {
-                                        // CHAR: split into 3 decorations so markup is invisible
-                                        // and the name appears as plain colored uppercase text
-                                        const charColor = getCharacterColor(tagVal, charColorMap);
-                                        const prefixLen = 6; // "[CHAR:" = 6 chars
-                                        const nameStart = start + prefixLen;
-                                        const nameEnd = end - 1; // position of "]"
-
-                                        // 1. Hide "[CHAR:" prefix
-                                        decorations.push(
-                                            Decoration.inline(start, start + prefixLen, {
-                                                class: 'roteiro-char-markup',
-                                            })
-                                        );
-
-                                        // 2. Name — visible, uppercase, character color
-                                        if (nameEnd > nameStart) {
-                                            decorations.push(
-                                                Decoration.inline(nameStart, nameEnd, {
-                                                    class: `roteiro-char-name ${isFocused ? '' : 'roteiro-char-name-blurred'}`,
-                                                    style: `color: ${charColor} !important;`,
-                                                })
-                                            );
-                                        }
-
-                                        // 3. Hide "]" suffix
-                                        decorations.push(
-                                            Decoration.inline(end - 1, end, {
-                                                class: 'roteiro-char-markup',
-                                            })
-                                        );
-
-                                        // Preserve data attributes on full span (used by block decoration & autocomplete)
-                                        decorations.push(
-                                            Decoration.inline(start, end, {
-                                                'data-tag': tagType,
-                                                'data-val': tagVal,
-                                            })
-                                        );
+                                        chipColor = getCharacterColor(tagVal, charColorMap);
+                                    } else if (['DIAL','VO','OFF','LOC','ENTREVISTA'].includes(tagType) && lastActiveCharName) {
+                                        chipColor = getCharacterColor(lastActiveCharName, charColorMap);
                                     } else {
-                                        // Generic decoration for all other tag types
-                                        let style = "";
-                                        if (lastActiveCharName && ['DIAL', 'VO', 'OFF', 'LOC', 'ENTREVISTA'].includes(tagType)) {
-                                            const charColor = getCharacterColor(lastActiveCharName, charColorMap);
-                                            style = `color: ${charColor} !important; opacity: 0.85;`;
-                                        }
-
-                                        decorations.push(
-                                            Decoration.inline(start, end, {
-                                                class: `roteiro-tag roteiro-tag-${tagType.toLowerCase()} ${isFocused ? 'roteiro-tag-focused' : 'roteiro-tag-blurred'}`,
-                                                style,
-                                                'data-tag': tagType,
-                                                'data-val': tagVal
-                                            })
-                                        );
+                                        chipColor = CHIP_COLORS[tagType] ?? '#ffffff80';
                                     }
+
+                                    // 1. Hide the raw markup text
+                                    decorations.push(Decoration.inline(start, end, {
+                                        class: 'roteiro-raw-hidden',
+                                        'data-tag': tagType,
+                                        'data-val': tagVal,
+                                    }));
+
+                                    // 2. Chip widget that replaces it visually
+                                    decorations.push(makeChipDecoration(tagType, tagVal, start, end, chipColor));
                                 }
+                            }
 
-                                // Apply block decoration to paragraph if tag is at the start
-                                if (firstTagType && firstMatchIdx !== -1) {
-                                    const textBeforeFirstTag = text.slice(0, firstMatchIdx);
-                                    if (textBeforeFirstTag.trim() === "") {
-                                        let style = "";
-                                        if (firstTagType === 'CHAR') {
-                                            const closeIdx = text.indexOf(']');
-                                            const charName = closeIdx !== -1 ? text.slice(firstMatchIdx + 6, closeIdx).trim().toUpperCase() : "";
-                                            const charColor = getCharacterColor(charName, charColorMap);
-                                            const rgb = hexToRgbComponents(charColor);
-                                            style = `--char-color: ${charColor}; --char-color-rgb: ${rgb}; border-left-color: var(--char-color) !important; background-color: rgba(var(--char-color-rgb), var(--roteiro-bg-opacity)) !important;`;
-                                        } else if (lastActiveCharName && ['DIAL', 'VO', 'OFF', 'LOC', 'ENTREVISTA'].includes(firstTagType)) {
-                                            const charColor = getCharacterColor(lastActiveCharName, charColorMap);
-                                            const rgb = hexToRgbComponents(charColor);
-                                            style = `--char-color: ${charColor}; --char-color-rgb: ${rgb}; border-left-color: var(--char-color) !important; background-color: rgba(var(--char-color-rgb), var(--roteiro-bg-opacity)) !important;`;
-                                        }
+                            // ─── Block-level paragraph decoration ────────────────────
+                            if (firstTagType && firstMatchIdx !== -1) {
+                                const textBefore = text.slice(0, firstMatchIdx);
+                                if (textBefore.trim() === '') {
+                                    let blockStyle = '';
 
-                                        decorations.push(
-                                            Decoration.node(pos, pos + node.nodeSize, {
-                                                class: `roteiro-block roteiro-block-${firstTagType.toLowerCase()}`,
-                                                style
-                                            })
-                                        );
+                                    if (firstTagType === 'CHAR') {
+                                        const closeIdx = text.indexOf(']');
+                                        const charName = closeIdx !== -1
+                                            ? text.slice(firstMatchIdx + 6, closeIdx).trim().toUpperCase()
+                                            : '';
+                                        const charColor = getCharacterColor(charName, charColorMap);
+                                        const rgb = hexToRgbComponents(charColor);
+                                        blockStyle = `--char-color:${charColor};border-left-color:${charColor}!important;background-color:rgba(${rgb},var(--roteiro-bg-opacity))!important;`;
+
+                                    } else if (['DIAL','VO','OFF','LOC','ENTREVISTA'].includes(firstTagType) && lastActiveCharName) {
+                                        const charColor = getCharacterColor(lastActiveCharName, charColorMap);
+                                        const rgb = hexToRgbComponents(charColor);
+                                        blockStyle = `--char-color:${charColor};border-left-color:${charColor}!important;background-color:rgba(${rgb},var(--roteiro-bg-opacity))!important;color:${charColor}!important;`;
+
+                                    } else if (firstTagType === 'TRILHA') {
+                                        blockStyle = 'color:#9B7FDD!important;';
+
+                                    } else if (firstTagType === 'SFX') {
+                                        blockStyle = 'color:#34C48A!important;';
                                     }
+
+                                    decorations.push(
+                                        Decoration.node(pos, pos + node.nodeSize, {
+                                            class: `roteiro-block roteiro-block-${firstTagType.toLowerCase()}`,
+                                            style: blockStyle,
+                                        })
+                                    );
                                 }
                             }
                         });
@@ -231,9 +287,7 @@ const RoteiroDecorationExtension = Extension.create({
                     }
                 },
                 props: {
-                    decorations(state) {
-                        return this.getState(state);
-                    }
+                    decorations(state) { return this.getState(state); }
                 }
             })
         ];
