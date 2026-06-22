@@ -282,7 +282,16 @@ const RoteiroDecorationExtension = Extension.create({
                         };
 
                         blocks.forEach((b) => {
-                            if (b.firstTagType === 'CHAR') {
+                            if (b.text.startsWith('\u200B')) {
+                                commitActiveGroup();
+                                activeGroupCharName = null;
+                                groupedBlocks.push({
+                                    ...b,
+                                    groupType: 'NONE',
+                                    charName: null,
+                                    positionInGroup: 'standalone'
+                                });
+                            } else if (b.firstTagType === 'CHAR') {
                                 commitActiveGroup();
                                 const closeIdx = b.text.indexOf(']');
                                 activeGroupCharName = closeIdx !== -1 ? b.text.slice(6, closeIdx).trim().toUpperCase() : '';
@@ -403,8 +412,8 @@ interface CollaborativeEditorProps {
 }
 
 const cleanAndNormalizeText = (text: string) => {
-    // Text is stored as typed — CSS handles uppercase rendering for labels
-    return text;
+    // Strip zero-width space characters so they don't pollute the database
+    return text.replace(/\u200B/g, '');
 };
 
 const getSlashQuery = (editor: Editor) => {
@@ -420,7 +429,7 @@ const getSlashQuery = (editor: Editor) => {
     const queryText = textBeforeCaret.slice(lastSlashIdx + 1);
 
     const textBeforeSlash = textBeforeCaret.slice(0, lastSlashIdx);
-    const isAtStart = textBeforeSlash.trim() === "";
+    const isAtStart = textBeforeSlash.replace(/\u200B/g, '').trim() === "";
 
     if (!isAtStart) return null;
     if (queryText.includes(' ')) return null;
@@ -457,6 +466,10 @@ const getAudioContext = (editor: Editor) => {
     const { $from } = selection;
     const textOfBlock = $from.parent.textContent;
 
+    if (textOfBlock.startsWith('\u200B')) {
+        return 'NONE';
+    }
+
     if (textOfBlock.startsWith('[CHAR:') ||
         textOfBlock.startsWith('[DIAL]') || 
         textOfBlock.startsWith('[VO]') || 
@@ -473,7 +486,9 @@ const getAudioContext = (editor: Editor) => {
         if (pos >= currentBlockPos) return false;
         if (!node.isTextblock) return;
         const text = node.textContent;
-        if (text.startsWith('[CHAR:')) {
+        if (text.startsWith('\u200B')) {
+            lastTag = 'NONE';
+        } else if (text.startsWith('[CHAR:')) {
             lastTag = 'CHAR';
         } else if (text.startsWith('[TRILHA') || text.startsWith('[SFX')) {
             lastTag = 'NONE';
@@ -759,13 +774,14 @@ export function CollaborativeEditor({
         const to = $from.after() - 1;
         
         let newText = text;
-        if (text.startsWith('/')) {
+        const cleanText = text.replace(/\u200B/g, '');
+        if (cleanText.startsWith('/')) {
             // Replace the slash command line completely with the dialogue tag
             newText = `[${subVal}] `;
-        } else if (text.startsWith('[DIAL') || text.startsWith('[VO') || text.startsWith('[OFF') || text.startsWith('[LOC') || text.startsWith('[ENTREVISTA')) {
-            newText = text.replace(/\[[A-Z]+\]\s*\/[a-z_]*/i, `[${subVal}] `);
-        } else if (text.startsWith('[CHAR:')) {
-            newText = text + ` [${subVal}]`;
+        } else if (cleanText.startsWith('[DIAL') || cleanText.startsWith('[VO') || cleanText.startsWith('[OFF') || cleanText.startsWith('[LOC') || cleanText.startsWith('[ENTREVISTA')) {
+            newText = cleanText.replace(/\[[A-Z]+\]\s*\/[a-z_]*/i, `[${subVal}] `);
+        } else if (cleanText.startsWith('[CHAR:')) {
+            newText = cleanText + ` [${subVal}]`;
         }
         
         editor.chain()
@@ -981,60 +997,77 @@ export function CollaborativeEditor({
                             }
                         }
 
-                        // Enter intercept on DIAL/speech blocks
+                        // Enter intercepts for characters and subelements (300ms delay)
                         if (event.key === 'Enter' && !event.shiftKey && ed) {
                             const { selection } = ed.state;
                             const { $from } = selection;
                             const text = $from.parent.textContent;
-                            const dialMatch = text.match(/^\[(DIAL|VO|OFF|LOC|ENTREVISTA)\]/);
-                            if (dialMatch) {
+                            
+                            // Check context: are we inside a character block?
+                            const context = getAudioContext(ed);
+                            
+                            if (context === 'CHAR') {
                                 event.preventDefault();
-                                const tagType = dialMatch[1];
+                                
+                                const cleanText = text.replace(/\u200B/g, '');
+                                
+                                // Case 1: If text is exactly "/" (meaning they are at the root/options selection)
+                                // Pressing Enter here exits the character block completely.
+                                if (cleanText === '/') {
+                                    const startPos = $from.start();
+                                    const endPos = $from.end();
+                                    
+                                    ed.chain()
+                                        .insertContentAt({ from: startPos, to: endPos }, '\u200B')
+                                        .focus(startPos + 1)
+                                        .run();
+                                        
+                                    // Close slash menu
+                                    setSlashMenu(prev => ({ ...prev, visible: false }));
+                                    lastEnterRef.current = null;
+                                    return true;
+                                }
+                                
+                                // Special check for [CHAR:...] header: pressing Enter on [CHAR:...] immediately goes to root '/' line below.
+                                if (text.startsWith('[CHAR:')) {
+                                    const pos = $from.after();
+                                    ed.chain()
+                                        .insertContentAt(pos, '<p>/</p>')
+                                        .focus(pos + 2) // inside the paragraph after /
+                                        .run();
+                                    lastEnterRef.current = null;
+                                    return true;
+                                }
+                                
+                                // Check if this is a double Enter (within 300ms) on a plain / empty line
                                 const now = Date.now();
                                 const lastEnter = lastEnterRef.current;
                                 
-                                // Update ref first
-                                lastEnterRef.current = { time: now, pos: $from.pos };
-
-                                if (lastEnter && (now - lastEnter.time <= 100)) {
-                                    // Exit Dial: remove the [TAG] prefix from the current paragraph
+                                // If lastEnter is within 300ms and the user is on an empty line:
+                                if (lastEnter && (now - lastEnter.time <= 300) && cleanText === '') {
+                                    // Exit subelement: replace current empty line with '/' to go to the root of the character block
                                     const startPos = $from.start();
-                                    const deleteLen = tagType.length + 3; // e.g. "[DIAL] " has length 7
-                                    
-                                    const parentEnd = $from.end();
-                                    const safeEnd = Math.min(startPos + deleteLen, parentEnd);
+                                    const endPos = $from.end();
                                     
                                     ed.chain()
-                                        .deleteRange({ from: startPos, to: safeEnd })
-                                        .focus(startPos)
+                                        .insertContentAt({ from: startPos, to: endPos }, '/')
+                                        .focus(startPos + 1)
                                         .run();
+                                        
+                                    lastEnterRef.current = null;
                                     return true;
                                 } else {
-                                    // Continue Dial: insert new paragraph with same tag below
+                                    // Single Enter: insert a new empty paragraph `<p></p>` below
                                     const pos = $from.after();
-                                    const tagPrefix = `[${tagType}] `;
                                     ed.chain()
-                                        .insertContentAt(pos, `<p>${tagPrefix}</p>`)
-                                        .focus(pos + tagPrefix.length + 1) // e.g. pos + 7 + 1 = pos + 8 for DIAL
+                                        .insertContentAt(pos, '<p></p>')
+                                        .focus(pos + 1)
                                         .run();
+                                        
+                                    // Record the Enter event. The new cursor pos is pos + 1
+                                    lastEnterRef.current = { time: now, pos: pos + 1 };
                                     return true;
                                 }
-                            }
-                        }
-
-                        // Enter intercept on Character names: insert a new line with '/' to trigger subelements
-                        if (event.key === 'Enter' && !event.shiftKey && ed) {
-                            const { selection } = ed.state;
-                            const { $from } = selection;
-                            const text = $from.parent.textContent;
-                            if (text.startsWith('[CHAR:')) {
-                                event.preventDefault();
-                                const pos = $from.after();
-                                ed.chain()
-                                    .insertContentAt(pos, '<p>/</p>')
-                                    .focus(pos + 2) // inside the paragraph after /
-                                    .run();
-                                return true;
                             }
                         }
 
