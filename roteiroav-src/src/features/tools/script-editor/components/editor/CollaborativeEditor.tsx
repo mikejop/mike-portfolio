@@ -358,63 +358,83 @@ const getCharAutocompleteInfo = (editor: Editor) => {
     return null;
 };
 
-const getParentBlockType = (editor: Editor) => {
-    const { selection } = editor.state;
+const getAudioContext = (editor: Editor) => {
+    const { doc, selection } = editor.state;
     const { $from } = selection;
     const textOfBlock = $from.parent.textContent;
 
-    if (textOfBlock.startsWith('[CHAR:')) return 'CHAR_NAME';
-    if (textOfBlock.startsWith('[DIAL]') || 
+    if (textOfBlock.startsWith('[CHAR:') ||
+        textOfBlock.startsWith('[DIAL]') || 
         textOfBlock.startsWith('[VO]') || 
         textOfBlock.startsWith('[OFF]') || 
         textOfBlock.startsWith('[LOC]') || 
         textOfBlock.startsWith('[ENTREVISTA]')) {
-        return 'CHAR_DIALOGUE';
+        return 'CHAR';
     }
-    return 'NONE';
+
+    const currentBlockPos = $from.before();
+    let lastTag: 'CHAR' | 'NONE' = 'NONE';
+
+    doc.descendants((node, pos) => {
+        if (pos >= currentBlockPos) return false;
+        if (!node.isTextblock) return;
+        const text = node.textContent;
+        if (text.startsWith('[CHAR:')) {
+            lastTag = 'CHAR';
+        } else if (text.startsWith('[TRILHA') || text.startsWith('[SFX')) {
+            lastTag = 'NONE';
+        }
+    });
+
+    return lastTag;
 };
 
 const getAudioMenuOptions = (
     query: string, 
-    parentType: string, 
+    context: 'NONE' | 'CHAR', 
     onSelectTag: (markup: string) => void, 
     onSelectSub: (val: string) => void
 ) => {
     const q = query.toLowerCase().trim();
 
-    if (parentType === 'NONE') {
-        const mains = [
-            { label: 'Personagem / Fala (/char)', cmd: 'char', markup: '[CHAR:]' },
-            { label: 'Trilha Sonora (/trilha)', cmd: 'trilha', markup: '[TRILHA:] ' },
-            { label: 'Efeito Sonoro (/sfx)', cmd: 'sfx', markup: '[SFX:] ' }
-        ];
-        return mains
-            .filter(m => !q || m.label.toLowerCase().includes(q) || m.cmd.includes(q))
-            .map(m => ({
-                label: m.label,
-                command: `/${m.cmd}`,
-                action: () => onSelectTag(m.markup)
-            }));
-    }
-
-    if (parentType === 'CHAR_DIALOGUE') {
+    if (context === 'CHAR') {
         const subs = [
             { label: 'DIAL (/dial)', cmd: 'dial', val: 'DIAL' },
             { label: 'VO (/vo)', cmd: 'vo', val: 'VO' },
             { label: 'OFF (/off)', cmd: 'off', val: 'OFF' },
             { label: 'LOC (/loc)', cmd: 'loc', val: 'LOC' },
-            { label: 'ENTREVISTA (/entrevista)', cmd: 'entrevista', val: 'ENTREVISTA' }
+            { label: 'ENTREVISTA (/entrevista)', cmd: 'entrevista', val: 'ENTREVISTA' },
+            { label: 'Efeito Sonoro (/sfx)', cmd: 'sfx', markup: '[SFX:] ' },
+            { label: 'Trilha Sonora (/trilha)', cmd: 'trilha', markup: '[TRILHA:] ' },
+            { label: 'Personagem / Fala (/char)', cmd: 'char', markup: '[CHAR:]' }
         ];
         return subs
             .filter(s => !q || s.label.toLowerCase().includes(q) || s.cmd.includes(q))
             .map(s => ({
                 label: s.label,
                 command: `/${s.cmd}`,
-                action: () => onSelectSub(s.val)
+                action: () => {
+                    if (s.markup) {
+                        onSelectTag(s.markup);
+                    } else {
+                        onSelectSub(s.val!);
+                    }
+                }
             }));
     }
 
-    return [];
+    const mains = [
+        { label: 'Personagem / Fala (/char)', cmd: 'char', markup: '[CHAR:]' },
+        { label: 'Trilha Sonora (/trilha)', cmd: 'trilha', markup: '[TRILHA:] ' },
+        { label: 'Efeito Sonoro (/sfx)', cmd: 'sfx', markup: '[SFX:] ' }
+    ];
+    return mains
+        .filter(m => !q || m.label.toLowerCase().includes(q) || m.cmd.includes(q))
+        .map(m => ({
+            label: m.label,
+            command: `/${m.cmd}`,
+            action: () => onSelectTag(m.markup)
+        }));
 };
 
 const getVisualMenuOptions = (
@@ -639,16 +659,18 @@ export function CollaborativeEditor({
         const { selection } = editor.state;
         const { $from } = selection;
         const text = $from.parent.textContent;
+        const from = $from.before() + 1;
+        const to = $from.after() - 1;
         
         let newText = text;
-        if (text.startsWith('[DIAL') || text.startsWith('[VO') || text.startsWith('[OFF') || text.startsWith('[LOC') || text.startsWith('[ENTREVISTA')) {
+        if (text.startsWith('/')) {
+            // Replace the slash command line completely with the dialogue tag
+            newText = `[${subVal}] `;
+        } else if (text.startsWith('[DIAL') || text.startsWith('[VO') || text.startsWith('[OFF') || text.startsWith('[LOC') || text.startsWith('[ENTREVISTA')) {
             newText = text.replace(/\[[A-Z]+\]\s*\/[a-z_]*/i, `[${subVal}] `);
         } else if (text.startsWith('[CHAR:')) {
             newText = text + ` [${subVal}]`;
         }
-        
-        const from = $from.before() + 1;
-        const to = $from.after() - 1;
         
         editor.chain()
             .focus()
@@ -728,13 +750,13 @@ export function CollaborativeEditor({
                 const top = coords.bottom - editorRect.top + editor.view.dom.scrollTop + 4;
                 const left = coords.left - editorRect.left + editor.view.dom.scrollLeft;
 
-                const parentType = field === 'audio' ? getParentBlockType(editor) : 'NONE';
+                const context = field === 'audio' ? getAudioContext(editor) : 'NONE';
                 
                 let opts: any[] = [];
                 if (field === 'audio') {
                     opts = getAudioMenuOptions(
                         slashInfo.query, 
-                        parentType, 
+                        context, 
                         (markup) => {
                             insertAudioTag(editor, markup);
                             setSlashMenu(prev => ({ ...prev, visible: false }));
@@ -829,6 +851,39 @@ export function CollaborativeEditor({
                         ...(id ? { id } : {}),
                     },
                     handleKeyDown: (view, event) => {
+                        // Slash menu keyboard navigation (priority)
+                        if (slashMenu.visible && slashMenu.options.length > 0) {
+                            if (event.key === 'ArrowDown') {
+                                event.preventDefault();
+                                setSlashMenu(prev => ({
+                                    ...prev,
+                                    activeIndex: (prev.activeIndex + 1) % prev.options.length
+                                }));
+                                return true;
+                            }
+                            if (event.key === 'ArrowUp') {
+                                event.preventDefault();
+                                setSlashMenu(prev => ({
+                                    ...prev,
+                                    activeIndex: (prev.activeIndex - 1 + prev.options.length) % prev.options.length
+                                }));
+                                return true;
+                            }
+                            if (event.key === 'Enter') {
+                                event.preventDefault();
+                                const activeOpt = slashMenu.options[slashMenu.activeIndex];
+                                if (activeOpt) {
+                                    activeOpt.action();
+                                }
+                                return true;
+                            }
+                            if (event.key === 'Escape') {
+                                event.preventDefault();
+                                setSlashMenu(prev => ({ ...prev, visible: false }));
+                                return true;
+                            }
+                        }
+
                         // Enter intercept on DIAL/speech blocks
                         if (event.key === 'Enter' && !event.shiftKey && ed) {
                             const { selection } = ed.state;
@@ -870,7 +925,7 @@ export function CollaborativeEditor({
                             }
                         }
 
-                        // Enter intercept on Character names: auto-insert [DIAL] block below
+                        // Enter intercept on Character names: insert a new line with '/' to trigger subelements
                         if (event.key === 'Enter' && !event.shiftKey && ed) {
                             const { selection } = ed.state;
                             const { $from } = selection;
@@ -879,42 +934,9 @@ export function CollaborativeEditor({
                                 event.preventDefault();
                                 const pos = $from.after();
                                 ed.chain()
-                                    .insertContentAt(pos, '<p>[DIAL] </p>')
-                                    .focus(pos + 8)
+                                    .insertContentAt(pos, '<p>/</p>')
+                                    .focus(pos + 2) // inside the paragraph after /
                                     .run();
-                                return true;
-                            }
-                        }
-
-                        // Slash menu keyboard navigation
-                        if (slashMenu.visible && slashMenu.options.length > 0) {
-                            if (event.key === 'ArrowDown') {
-                                event.preventDefault();
-                                setSlashMenu(prev => ({
-                                    ...prev,
-                                    activeIndex: (prev.activeIndex + 1) % prev.options.length
-                                }));
-                                return true;
-                            }
-                            if (event.key === 'ArrowUp') {
-                                event.preventDefault();
-                                setSlashMenu(prev => ({
-                                    ...prev,
-                                    activeIndex: (prev.activeIndex - 1 + prev.options.length) % prev.options.length
-                                }));
-                                return true;
-                            }
-                            if (event.key === 'Enter') {
-                                event.preventDefault();
-                                const activeOpt = slashMenu.options[slashMenu.activeIndex];
-                                if (activeOpt) {
-                                    activeOpt.action();
-                                }
-                                return true;
-                            }
-                            if (event.key === 'Escape') {
-                                event.preventDefault();
-                                setSlashMenu(prev => ({ ...prev, visible: false }));
                                 return true;
                             }
                         }
