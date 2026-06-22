@@ -214,6 +214,39 @@
   background: rgba(52, 196, 138, var(--roteiro-bg-opacity)) !important;
 }
 
+/* Grouping states to merge blocks visually */
+.roteiro-group-start {
+  margin-top: 10px !important;
+  margin-bottom: 0 !important;
+  border-radius: 4px 4px 0 0 !important;
+  padding-top: 8px !important;
+  padding-bottom: 3px !important;
+}
+
+.roteiro-group-middle {
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  border-radius: 0 !important;
+  padding-top: 3px !important;
+  padding-bottom: 3px !important;
+}
+
+.roteiro-group-end {
+  margin-top: 0 !important;
+  margin-bottom: 10px !important;
+  border-radius: 0 0 4px 4px !important;
+  padding-top: 3px !important;
+  padding-bottom: 8px !important;
+}
+
+.roteiro-group-standalone {
+  margin-top: 10px !important;
+  margin-bottom: 10px !important;
+  border-radius: 4px !important;
+  padding-top: 8px !important;
+  padding-bottom: 8px !important;
+}
+
 /* ─── Hide raw tag markup (chip widgets replace it visually) ─── */
 .roteiro-raw-hidden {
   font-size: 0 !important;

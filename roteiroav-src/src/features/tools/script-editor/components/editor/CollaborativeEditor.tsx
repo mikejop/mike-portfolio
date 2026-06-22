@@ -188,6 +188,7 @@ const RoteiroDecorationExtension = Extension.create({
                         const decorations: Decoration[] = [];
                         const charColorMap = getCharacterColorMap();
                         let lastActiveCharName: string | null = null;
+                        const blocks: { pos: number; nodeSize: number; text: string; firstTagType: string | null }[] = [];
 
                         doc.descendants((node, pos) => {
                             if (!node.isTextblock) return;
@@ -218,13 +219,10 @@ const RoteiroDecorationExtension = Extension.create({
                                 }
 
                                 if (tagType === 'CHAR' && !tagVal) {
-                                    // Empty CHAR (initial state) — show cursor
-                                    // between hidden brackets so the field looks blank.
                                     decorations.push(Decoration.inline(start, start + 6, { class: 'roteiro-raw-hidden' }));
                                     decorations.push(Decoration.inline(end - 1, end,     { class: 'roteiro-raw-hidden' }));
                                     decorations.push(Decoration.inline(start, end,       { 'data-tag': tagType, 'data-val': tagVal }));
                                 } else {
-                                    // Determine chip colour
                                     let chipColor: string;
                                     if (tagType === 'CHAR') {
                                         chipColor = getCharacterColor(tagVal, charColorMap);
@@ -234,53 +232,149 @@ const RoteiroDecorationExtension = Extension.create({
                                         chipColor = CHIP_COLORS[tagType] ?? '#ffffff80';
                                     }
 
-                                    // 1. Hide the raw markup text
                                     decorations.push(Decoration.inline(start, end, {
                                         class: 'roteiro-raw-hidden',
                                         'data-tag': tagType,
                                         'data-val': tagVal,
                                     }));
-
-                                    // 2. Chip widget that replaces it visually
                                     decorations.push(makeChipDecoration(tagType, tagVal, start, end, chipColor));
                                 }
                             }
 
-                            // ─── Block-level paragraph decoration ────────────────────
                             if (firstTagType && firstMatchIdx !== -1) {
                                 const textBefore = text.slice(0, firstMatchIdx);
-                                if (textBefore.trim() === '') {
-                                    let blockStyle = '';
-
-                                    if (firstTagType === 'CHAR') {
-                                        const closeIdx = text.indexOf(']');
-                                        const charName = closeIdx !== -1
-                                            ? text.slice(firstMatchIdx + 6, closeIdx).trim().toUpperCase()
-                                            : '';
-                                        const charColor = getCharacterColor(charName, charColorMap);
-                                        const rgb = hexToRgbComponents(charColor);
-                                        blockStyle = `--char-color:${charColor};border-left-color:${charColor}!important;background-color:rgba(${rgb},var(--roteiro-bg-opacity))!important;`;
-
-                                    } else if (['DIAL','VO','OFF','LOC','ENTREVISTA'].includes(firstTagType) && lastActiveCharName) {
-                                        const charColor = getCharacterColor(lastActiveCharName, charColorMap);
-                                        const rgb = hexToRgbComponents(charColor);
-                                        blockStyle = `--char-color:${charColor};border-left-color:${charColor}!important;background-color:rgba(${rgb},var(--roteiro-bg-opacity))!important;color:${charColor}!important;`;
-
-                                    } else if (firstTagType === 'TRILHA') {
-                                        blockStyle = 'color:#9B7FDD!important;';
-
-                                    } else if (firstTagType === 'SFX') {
-                                        blockStyle = 'color:#34C48A!important;';
-                                    }
-
-                                    decorations.push(
-                                        Decoration.node(pos, pos + node.nodeSize, {
-                                            class: `roteiro-block roteiro-block-${firstTagType.toLowerCase()}`,
-                                            style: blockStyle,
-                                        })
-                                    );
+                                if (textBefore.trim() !== '') {
+                                    firstTagType = null;
                                 }
                             }
+
+                            blocks.push({ pos, nodeSize: node.nodeSize, text, firstTagType });
+                        });
+
+                        // ─── Grouping logic for paragraph node decorations ───
+                        interface GroupedBlock {
+                            pos: number;
+                            nodeSize: number;
+                            text: string;
+                            firstTagType: string | null;
+                            groupType: 'CHAR' | 'TRILHA' | 'SFX' | 'NONE';
+                            charName: string | null;
+                            positionInGroup: 'start' | 'middle' | 'end' | 'standalone';
+                        }
+
+                        const groupedBlocks: GroupedBlock[] = [];
+                        let activeGroupCharName: string | null = null;
+                        let activeGroupBlocks: GroupedBlock[] = [];
+
+                        const commitActiveGroup = () => {
+                            if (activeGroupBlocks.length === 0) return;
+                            if (activeGroupBlocks.length === 1) {
+                                activeGroupBlocks[0].positionInGroup = 'standalone';
+                            } else {
+                                activeGroupBlocks[0].positionInGroup = 'start';
+                                for (let i = 1; i < activeGroupBlocks.length - 1; i++) {
+                                    activeGroupBlocks[i].positionInGroup = 'middle';
+                                }
+                                activeGroupBlocks[activeGroupBlocks.length - 1].positionInGroup = 'end';
+                            }
+                            groupedBlocks.push(...activeGroupBlocks);
+                            activeGroupBlocks = [];
+                        };
+
+                        blocks.forEach((b) => {
+                            if (b.firstTagType === 'CHAR') {
+                                commitActiveGroup();
+                                const closeIdx = b.text.indexOf(']');
+                                activeGroupCharName = closeIdx !== -1 ? b.text.slice(6, closeIdx).trim().toUpperCase() : '';
+                                activeGroupBlocks.push({
+                                    ...b,
+                                    groupType: 'CHAR',
+                                    charName: activeGroupCharName,
+                                    positionInGroup: 'standalone'
+                                });
+                            } else if (['DIAL', 'VO', 'OFF', 'LOC', 'ENTREVISTA'].includes(b.firstTagType || '')) {
+                                if (activeGroupCharName !== null) {
+                                    activeGroupBlocks.push({
+                                        ...b,
+                                        groupType: 'CHAR',
+                                        charName: activeGroupCharName,
+                                        positionInGroup: 'standalone'
+                                    });
+                                } else {
+                                    commitActiveGroup();
+                                    groupedBlocks.push({
+                                        ...b,
+                                        groupType: 'CHAR',
+                                        charName: '',
+                                        positionInGroup: 'standalone'
+                                    });
+                                }
+                            } else if (b.firstTagType === 'TRILHA') {
+                                commitActiveGroup();
+                                activeGroupCharName = null;
+                                groupedBlocks.push({
+                                    ...b,
+                                    groupType: 'TRILHA',
+                                    charName: null,
+                                    positionInGroup: 'standalone'
+                                });
+                            } else if (b.firstTagType === 'SFX') {
+                                commitActiveGroup();
+                                activeGroupCharName = null;
+                                groupedBlocks.push({
+                                    ...b,
+                                    groupType: 'SFX',
+                                    charName: null,
+                                    positionInGroup: 'standalone'
+                                });
+                            } else {
+                                if (activeGroupCharName !== null) {
+                                    activeGroupBlocks.push({
+                                        ...b,
+                                        groupType: 'CHAR',
+                                        charName: activeGroupCharName,
+                                        positionInGroup: 'standalone'
+                                    });
+                                } else {
+                                    commitActiveGroup();
+                                    groupedBlocks.push({
+                                        ...b,
+                                        groupType: 'NONE',
+                                        charName: null,
+                                        positionInGroup: 'standalone'
+                                    });
+                                }
+                            }
+                        });
+                        commitActiveGroup();
+
+                        // ─── Generate node decorations ───
+                        groupedBlocks.forEach((b) => {
+                            let blockStyle = '';
+                            const firstTagType = b.firstTagType;
+
+                            if (b.groupType === 'CHAR') {
+                                const charColor = getCharacterColor(b.charName || '', charColorMap);
+                                const rgb = hexToRgbComponents(charColor);
+                                blockStyle = `--char-color:${charColor};border-left-color:${charColor}!important;background-color:rgba(${rgb},var(--roteiro-bg-opacity))!important;`;
+                                if (['DIAL','VO','OFF','LOC','ENTREVISTA'].includes(firstTagType || '')) {
+                                    blockStyle += `color:${charColor}!important;`;
+                                }
+                            } else if (b.groupType === 'TRILHA') {
+                                blockStyle = 'color:#9B7FDD!important;';
+                            } else if (b.groupType === 'SFX') {
+                                blockStyle = 'color:#34C48A!important;';
+                            }
+
+                            const groupClass = `roteiro-group-${b.positionInGroup}`;
+                            const tagClass = firstTagType ? `roteiro-block-${firstTagType.toLowerCase()}` : '';
+
+                            decorations.push(
+                                Decoration.node(b.pos, b.pos + b.nodeSize, {
+                                    class: cn(`roteiro-block`, tagClass, groupClass),
+                                    style: blockStyle,
+                                })
+                            );
                         });
 
                         return DecorationSet.create(doc, decorations);
@@ -949,6 +1043,24 @@ export function CollaborativeEditor({
                         }
                         if (event.defaultPrevented) {
                             return true;
+                        }
+                        return false;
+                    },
+                    handleTextInput: (view, from, to, text) => {
+                        if (text.length === 1 && /[a-zà-ü]/i.test(text)) {
+                            const $from = view.state.doc.resolve(from);
+                            const blockText = $from.parent.textContent;
+                            const textBefore = blockText.slice(0, $from.parentOffset);
+
+                            const isAtStart = textBefore.trim() === '' || 
+                                              /^\[[A-Z_]+(?::[^\]]*)?\]\s*$/.test(textBefore);
+                            const isAfterPeriod = /[\.\?\!]\s*$/.test(textBefore);
+
+                            if (isAtStart || isAfterPeriod) {
+                                const upperText = text.toUpperCase();
+                                view.dispatch(view.state.tr.insertText(upperText, from, to));
+                                return true;
+                            }
                         }
                         return false;
                     }
