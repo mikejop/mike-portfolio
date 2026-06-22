@@ -549,6 +549,8 @@ export function CollaborativeEditor({
         options: [],
         activeIndex: 0
     });
+    const slashMenuRef = useRef(slashMenu);
+    slashMenuRef.current = slashMenu;
 
     // Synchronize local Tiptap editor content with value if external updates happen
     useEffect(() => {
@@ -851,8 +853,9 @@ export function CollaborativeEditor({
                         ...(id ? { id } : {}),
                     },
                     handleKeyDown: (view, event) => {
+                        const currentMenu = slashMenuRef.current;
                         // Slash menu keyboard navigation (priority)
-                        if (slashMenu.visible && slashMenu.options.length > 0) {
+                        if (currentMenu.visible && currentMenu.options.length > 0) {
                             if (event.key === 'ArrowDown') {
                                 event.preventDefault();
                                 setSlashMenu(prev => ({
@@ -871,7 +874,7 @@ export function CollaborativeEditor({
                             }
                             if (event.key === 'Enter') {
                                 event.preventDefault();
-                                const activeOpt = slashMenu.options[slashMenu.activeIndex];
+                                const activeOpt = currentMenu.options[currentMenu.activeIndex];
                                 if (activeOpt) {
                                     activeOpt.action();
                                 }
