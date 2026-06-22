@@ -34,10 +34,27 @@ Abaixo está o resumo detalhado das correções de inicialização e novas funci
   - Para resolver isso, implementamos uma renderização condicional em [CollaborativeEditor.tsx](file:///Users/michaeloliveira/Documents/michael-portfolio-site/roteiroav-src/src/features/tools/script-editor/components/editor/CollaborativeEditor.tsx): enquanto o editor real está carregando (`editor === null`), renderizamos um elemento `<textarea>` dummy de fallback com o visual idêntico ao do editor final.
   - Se o usuário pressionar TAB na coluna VISUAL da última linha, a linha é criada e a coluna AUDIO seguinte (que é um novo `CollaborativeEditor`) é focada instantaneamente por meio desse elemento dummy. O usuário pode começar a digitar imediatamente e, quando o editor colaborativo real se conecta, a transição de texto e foco ocorre sem nenhuma piscada, atraso ou perda de foco.
 
+### 6. Sistema de Elementos e Comandos Slash (/)
+- **Menu de Comandos Palette (Slash Menu):** Adicionamos suporte ao caractere `/` em ambos os campos de **ÁUDIO** e **VISUAL**. Digitar `/` no início de uma linha abre uma paleta flutuante e translúcida (efeito glassmorphism) próxima ao cursor, contendo os elementos válidos para aquela coluna. Pressionar `ArrowUp`/`ArrowDown` navega pelas opções, `Enter` seleciona e `Escape` fecha o menu.
+- **Estruturação Semântica em ÁUDIO:**
+  - `/char`: Insere `[CHAR:]` (Personagem) e coloca o cursor para digitação. O nome digitado é automaticamente convertido para caixa alta (uppercase). Pressionar `Enter` cria uma nova linha abaixo já preenchida com o qualificador de diálogo padrão `[DIAL]`.
+  - Subelementos de Diálogo (`/dial`, `/vo`, `/off`, `/loc`, `/entrevista`): Aparecem no menu apenas quando o cursor está dentro de uma linha de diálogo de personagem, substituindo o rótulo da fala atual.
+  - `/trilha` e `/sfx`: Inserem blocos de Trilha Sonora e Efeitos Sonoros (`[TRILHA]` e `[SFX]`) respectivamente. Seus subelementos correspondentes (como `/original`, `/banco`, `/ambiente`, `/foley`) aparecem quando o cursor está dentro dessas linhas, atualizando o rótulo do bloco (ex: `TRILHA (Original):` ou `SFX (Som Ambiente):`).
+- **Autocompletar Semântico em VISUAL:**
+  - O menu abre diretamente no nível de subelementos ao acionar comandos de categoria (`/plano`, `/angulo`, `/posicao`, `/movcam`, `/lente`, `/luz`, `/insercao`, `/transicao`).
+  - Escolher um subelemento (ex: `PE` ou `Contra-plongée`) insere apenas o subelemento na célula em formato de tag inline (`[PLANO:PE]`), permitindo encadear múltiplos elementos na mesma célula (ex: um plano, ângulo e movimento juntos).
+  - Subelementos de `/transicao` (ex: `Fade out`) são renderizados de forma especial, flutuando no canto inferior direito da célula.
+- **Três Camadas de Estilização Visual (Mac Cores):**
+  - Aplicamos a identidade de cor (Azul para personagens, Violeta para trilhas, Verde para efeitos sonoros, Âmbar/Laranja/Teal/Coral para itens visuais) em três níveis:
+    1. **Borda lateral esquerda:** Uma linha de destaque vertical de 3px no lado esquerdo do bloco.
+    2. **Rótulo/Label:** O texto do rótulo (ex: `TRILHA:`, `DIAL:`) na respectiva cor.
+    3. **Fundo sutil (Tint):** Um fundo suave com opacidade adaptável (0.06 no tema escuro, 0.08 no tema claro).
+- **Hiding Não-Destrutivo (WYSIWYG Ativo):** O texto original contendo a marcação técnica (ex: `[TRILHA:Original]`) é preservado no banco de dados e fica visível apenas na linha focada para edição (permitindo edição e remoção direta das tags). Ao desfocar (blur) a linha, as tags se convertem visualmente nos rótulos limpos e coloridos.
+
 ---
 
 ## Verificação e Implantação
-- **Build de Produção:** Next.js foi compilado com sucesso (`next build` estático) e validado contra erros de importação/tipagem.
-- **Sincronização de Pasta:** Os arquivos estáticos gerados em `roteiroav-src/out` foram sincronizados com a pasta pública e de distribuição do projeto principal (`public/roteiroav` e `dist/roteiroav`).
+- **Backup Commit:** Commit de backup criado e publicado na branch remota `main` do GitHub antes do início da tarefa.
+- **Build de Produção:** Next.js compilado estaticamente com sucesso (`next build`).
 - **Firebase Deploy:** Executado `firebase deploy --only hosting` com sucesso.
   - URL de Produção Atualizada: [michael-portfolio-b422a.web.app/roteiroav/](https://michael-portfolio-b422a.web.app/roteiroav/)
