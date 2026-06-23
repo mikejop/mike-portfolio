@@ -187,30 +187,51 @@
   border-radius: 0 4px 4px 0;
   margin-top: 4px !important;
   margin-bottom: 4px !important;
-  transition: all 0.2s ease;
+  transition: border-color 0.15s ease-in-out, background-color 0.15s ease-in-out;
+  border-left: 3px solid transparent !important;
+  background-color: transparent !important;
 }
 
-.roteiro-block-char {
-  border-left: 3px solid #5B9BD5 !important;
-  background: rgba(91, 155, 213, var(--roteiro-bg-opacity)) !important;
-}
-
+.roteiro-block-char,
 .roteiro-block-dial,
 .roteiro-block-vo,
 .roteiro-block-off,
 .roteiro-block-loc,
-.roteiro-block-entrevista {
-  border-left: 3px solid #85B7EB !important;
+.roteiro-block-entrevista,
+.roteiro-block-trilha,
+.roteiro-block-sfx {
+  border-left: 3px solid transparent !important;
+  background-color: transparent !important;
+}
+
+/* Character blocks hover state (using dynamic inline variables) */
+.roteiro-block[style*="--char-color"]:hover {
+  border-left-color: var(--char-color) !important;
+  background-color: var(--char-bg-color) !important;
+}
+
+/* Static fallback hover states for individual block types if not overridden by dynamic character styles */
+.roteiro-block-char:hover {
+  border-left-color: #5B9BD5 !important;
+  background: rgba(91, 155, 213, var(--roteiro-bg-opacity)) !important;
+}
+
+.roteiro-block-dial:hover,
+.roteiro-block-vo:hover,
+.roteiro-block-off:hover,
+.roteiro-block-loc:hover,
+.roteiro-block-entrevista:hover {
+  border-left-color: #85B7EB !important;
   background: rgba(133, 183, 235, var(--roteiro-bg-opacity)) !important;
 }
 
-.roteiro-block-trilha {
-  border-left: 3px solid #9B7FDD !important;
+.roteiro-block-trilha:hover {
+  border-left-color: #9B7FDD !important;
   background: rgba(155, 127, 221, var(--roteiro-bg-opacity)) !important;
 }
 
-.roteiro-block-sfx {
-  border-left: 3px solid #34C48A !important;
+.roteiro-block-sfx:hover {
+  border-left-color: #34C48A !important;
   background: rgba(52, 196, 138, var(--roteiro-bg-opacity)) !important;
 }
 

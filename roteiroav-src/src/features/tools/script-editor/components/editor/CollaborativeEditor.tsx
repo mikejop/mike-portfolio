@@ -366,7 +366,7 @@ const RoteiroDecorationExtension = Extension.create({
                             if (b.groupType === 'CHAR') {
                                 const charColor = getCharacterColor(b.charName || '', charColorMap);
                                 const rgb = hexToRgbComponents(charColor);
-                                blockStyle = `--char-color:${charColor};border-left-color:${charColor}!important;background-color:rgba(${rgb},var(--roteiro-bg-opacity))!important;`;
+                                blockStyle = `--char-color:${charColor};--char-bg-color:rgba(${rgb},var(--roteiro-bg-opacity));`;
                                 if (firstTagType !== 'CHAR') {
                                     blockStyle += `color:${charColor}!important;`;
                                     isSpeech = true;
