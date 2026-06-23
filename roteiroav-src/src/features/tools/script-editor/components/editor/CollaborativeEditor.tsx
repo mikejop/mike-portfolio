@@ -137,7 +137,7 @@ const makeChipDecoration = (
             chip.contentEditable = 'false';
             chip.className = `roteiro-chip roteiro-chip-${tagType.toLowerCase()}`;
             chip.style.cssText =
-                `border-color:${chipColor};background:rgba(${rgb},0.13);`;
+                `--chip-color:${chipColor};background:rgba(${rgb},0.13);`;
 
             const lbl = document.createElement('span');
             lbl.className = 'roteiro-chip-label';
