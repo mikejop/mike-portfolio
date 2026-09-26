@@ -526,6 +526,16 @@ section {
   transform: scale(1.06);
 }
 
+.hero-bg-slide.slide-sunglasses-centered {
+  background-position: 30% center !important;
+}
+
+@media (max-width: 768px) {
+  .hero-bg-slide.slide-sunglasses-centered {
+    background-position: 28% center !important;
+  }
+}
+
 .hero-bg-video {
   width: 100vw;
   height: 56.25vw;
