@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "cd b2b-mentoria-app && npm run build && cd .. && vite build && mkdir -p dist/src && cp -R src/assets dist/src/assets && rm -rf dist/b2btraining && cp -R b2b-mentoria-app/out dist/b2btraining",
+    "postinstall": "cd b2b-mentoria-app && npm install",
+    "build": "cd b2b-mentoria-app && npm install && npm run build && cd .. && vite build && mkdir -p dist/src && cp -R src/assets dist/src/assets && rm -rf dist/b2btraining && cp -R b2b-mentoria-app/out dist/b2btraining",
     "preview": "vite preview"
   },
   "devDependencies": {
